@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import fnmatch
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, replace
 
 from chessreview.config import (
     DEFAULT_LOCKFILE_NAMES,
@@ -30,6 +30,19 @@ _TEST_DISABLE_RE = re.compile(
 # matching power `\.skip\(` doesn't already have.
 _COMMENTED_ASSERT_RE = re.compile(r"^\s*(#|//)\s*(assert|expect)\b")
 _REVERT_COMMIT_RE = re.compile(r'^Revert\s+"', re.IGNORECASE)
+_TEST_STEM_STRIP_RE = re.compile(r"^test_|_test$|\.test$|\.spec$", re.IGNORECASE)
+
+
+def _file_stem(path: str) -> str:
+    """'tests/test_foo.py' / 'src/foo.py' / 'foo_test.py' -> 'foo'.
+
+    Used to match a source file to its plausible test file by naming
+    convention, so "tests changed" credit only applies to files that
+    actually have a corresponding test, not to every other file in the PR.
+    """
+    basename = path.replace("\\", "/").rsplit("/", 1)[-1]
+    stem = basename.rsplit(".", 1)[0] if "." in basename else basename
+    return _TEST_STEM_STRIP_RE.sub("", stem).lower()
 
 
 @dataclass(frozen=True)
@@ -54,6 +67,7 @@ class FileSignals:
     todo_fixme_added: int
     is_dependency_lockfile: bool
     is_formatting_only: bool
+    has_matching_test: bool = False
 
 
 @dataclass(frozen=True)
@@ -178,6 +192,12 @@ def extract_pr_signals(
     non_test_files_changed = len(file_signals) - test_files_changed
     total_added = sum(fs.lines_added for fs in file_signals)
     total_removed = sum(fs.lines_removed for fs in file_signals)
+
+    test_stems = {_file_stem(fs.path) for fs in file_signals if fs.is_test_file}
+    file_signals = tuple(
+        fs if fs.is_test_file else replace(fs, has_matching_test=_file_stem(fs.path) in test_stems)
+        for fs in file_signals
+    )
 
     message_quality = classify_commit_message_quality(git_ctx.commit_messages)
     is_revert = git_ctx.is_revert or _is_revert_message(git_ctx.commit_messages)

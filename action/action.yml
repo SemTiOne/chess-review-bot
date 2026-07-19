@@ -65,7 +65,7 @@ runs:
 
     - name: Run chess-review-bot
       shell: bash
-      run: python "${{ github.action_path }}/action/entrypoint.py"
+      run: python "${{ github.action_path }}/entrypoint.py"
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GEMINI_API_KEY: ${{ inputs.gemini-key }}

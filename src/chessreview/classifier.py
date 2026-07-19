@@ -122,13 +122,14 @@ def classify_file(
             "net code reduction with maintained test coverage",
         )
 
-    # 12. Tests added, good message, not critical.
+    # 12. This specific file has a plausibly-corresponding test file also
+    #     changed in the PR (not just "some test changed somewhere").
     if (
-        pr.test_files_changed > 0
+        fs.has_matching_test
         and pr.commit_message_quality == "good"
         and not fs.is_critical
     ):
-        return result(Category.GREAT, "tests added alongside a well-described change")
+        return result(Category.GREAT, "has a matching test file changed alongside it")
 
     # 13. Small, single-file, single-purpose change.
     if pr.total_files == 1 and total_lines <= config.moderate_threshold:

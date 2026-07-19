@@ -186,10 +186,17 @@ def test_rule_brilliant_excluded_for_critical_paths():
 
 
 def test_rule_great_tests_added_good_message():
-    fs = _fs(net_lines=10)
+    fs = _fs(net_lines=10, has_matching_test=True)
     pr = _pr(test_files_changed=1, commit_message_quality="good")
     result = classify_file(fs, pr, CONFIG)
     assert result.category == Category.GREAT
+
+
+def test_rule_great_requires_matching_test_not_just_any_test_in_pr():
+    fs = _fs(net_lines=10, has_matching_test=False)
+    pr = _pr(test_files_changed=1, commit_message_quality="good")
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category != Category.GREAT
 
 
 # ---- Rule 13/14/15: best / excellent / good defaults ----------------------------

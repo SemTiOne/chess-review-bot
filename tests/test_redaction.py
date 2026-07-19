@@ -16,6 +16,12 @@ def test_contains_credential_true_cases():
     assert contains_credential("SECRET=topsecret")
 
 
+def test_redact_credentials_bearer_header_full_redaction():
+    text, redacted = redact_credentials("Authorization: Bearer sk-live-abc123xyz")
+    assert redacted is True
+    assert "sk-live-abc123xyz" not in text
+
+
 def test_contains_credential_false_cases():
     assert not contains_credential("def foo(): return 1")
     assert not contains_credential("this is a normal comment about a key concept")

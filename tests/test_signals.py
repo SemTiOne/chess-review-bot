@@ -4,6 +4,7 @@ from chessreview.config import Config
 from chessreview.diff_parser import DiffFile, DiffHunk, ParsedDiff
 from chessreview.signals import (
     GitContext,
+    _file_stem,
     classify_commit_message_quality,
     extract_file_signals,
     extract_pr_signals,
@@ -241,3 +242,49 @@ def test_extract_pr_signals_detects_revert_from_commit_message():
     git_ctx = GitContext(commit_messages=('Revert "Add risky feature"',))
     pr_signals = extract_pr_signals(diff, git_ctx, config)
     assert pr_signals.is_revert is True
+
+
+# ---- file-stem matching (has_matching_test) --------------------------------------
+
+
+def test_file_stem_matches_source_and_test_variants():
+    assert _file_stem("src/foo.py") == "foo"
+    assert _file_stem("tests/test_foo.py") == "foo"
+    assert _file_stem("src/foo_test.py") == "foo"
+    assert _file_stem("src/foo.test.js") == "foo"
+    assert _file_stem("src/foo.spec.ts") == "foo"
+
+
+def test_has_matching_test_true_when_stems_correspond():
+    config = Config()
+    diff = ParsedDiff(
+        files=(
+            _file("src/foo.py", hunks=(_hunk(added=("x = 1",)),)),
+            _file("tests/test_foo.py", hunks=(_hunk(added=("def test_x(): pass",)),)),
+        )
+    )
+    pr_signals = extract_pr_signals(diff, GitContext(), config)
+    foo = next(fs for fs in pr_signals.files if fs.path == "src/foo.py")
+    assert foo.has_matching_test is True
+
+
+def test_has_matching_test_false_for_unrelated_file():
+    config = Config()
+    diff = ParsedDiff(
+        files=(
+            _file("action/action.yml", hunks=(_hunk(added=("foo: bar",)),)),
+            _file("tests/test_redaction.py", hunks=(_hunk(added=("def test_x(): pass",)),)),
+        )
+    )
+    pr_signals = extract_pr_signals(diff, GitContext(), config)
+    action_file = next(fs for fs in pr_signals.files if fs.path == "action/action.yml")
+    assert action_file.has_matching_test is False
+
+
+def test_has_matching_test_always_false_on_test_files_themselves():
+    config = Config()
+    diff = ParsedDiff(
+        files=(_file("tests/test_foo.py", hunks=(_hunk(added=("def test_x(): pass",)),)),)
+    )
+    pr_signals = extract_pr_signals(diff, GitContext(), config)
+    assert pr_signals.files[0].has_matching_test is False
