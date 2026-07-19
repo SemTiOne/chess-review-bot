@@ -143,8 +143,7 @@ One comment per PR, updated on every push (idempotency marker
 
 - [`position-evaluator`](https://github.com/SemTiOne/position-evaluator) — the
   original: chess terminology for personal decisions, not code.
-- `envreap` — dead environment variables.
-- `stalebot-local` — stale TODO/FIXME/HACK via git-blame age.
+- [`env-auditor`](https://github.com/SemTiOne/env-auditor) — finds undocumented, stale, and missing environment variables across JS, Python, Go, Ruby, Shell, and Docker.
 
 ## License
 
