@@ -21,7 +21,11 @@ inputs:
     required: false
     default: ''
   critical-paths:
-    description: 'Newline-separated glob patterns marking critical files.'
+    description: 'Newline-separated glob patterns. Adds to the built-in defaults.'
+    required: false
+    default: ''
+  only-critical-paths:
+    description: 'Newline-separated glob patterns. Replaces the built-in defaults entirely.'
     required: false
     default: ''
   large-threshold:
@@ -70,6 +74,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GEMINI_API_KEY: ${{ inputs.gemini-key }}
         CHESSREVIEW_CRITICAL: ${{ inputs.critical-paths }}
+        CHESSREVIEW_ONLY_CRITICAL: ${{ inputs.only-critical-paths }}
         CHESSREVIEW_LARGE_THRESHOLD: ${{ inputs.large-threshold }}
         CHESSREVIEW_MODERATE_THRESHOLD: ${{ inputs.moderate-threshold }}
         CHESSREVIEW_FAIL_ON_BLUNDER: ${{ inputs.fail-on-blunder }}

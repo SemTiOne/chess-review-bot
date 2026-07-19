@@ -86,7 +86,9 @@ def main() -> int:
     token = os.environ.get("GITHUB_TOKEN")
     gemini_key = os.environ.get("GEMINI_API_KEY") or None
     critical_raw = os.environ.get("CHESSREVIEW_CRITICAL", "")
-    critical_patterns = tuple(p for p in critical_raw.splitlines() if p.strip()) or None
+    only_critical_raw = os.environ.get("CHESSREVIEW_ONLY_CRITICAL", "")
+    added_critical = tuple(p for p in critical_raw.splitlines() if p.strip())
+    only_critical = tuple(p for p in only_critical_raw.splitlines() if p.strip())
     large_threshold = _env_int("CHESSREVIEW_LARGE_THRESHOLD", 400)
     moderate_threshold = _env_int("CHESSREVIEW_MODERATE_THRESHOLD", 100)
     fail_on_blunder = _env_bool("CHESSREVIEW_FAIL_ON_BLUNDER", True)
@@ -96,9 +98,18 @@ def main() -> int:
         print("chess-review-bot: GITHUB_TOKEN is required", file=sys.stderr)
         return EXIT_ERROR
 
+    # only_critical replaces the defaults entirely; added_critical extends
+    # them. Matches the CLI's --only-critical vs --critical split.
+    if only_critical:
+        critical_patterns = only_critical
+    elif added_critical:
+        critical_patterns = DEFAULT_CRITICAL_PATTERNS + added_critical
+    else:
+        critical_patterns = DEFAULT_CRITICAL_PATTERNS
+
     try:
         config = Config(
-            critical_patterns=critical_patterns or DEFAULT_CRITICAL_PATTERNS,
+            critical_patterns=critical_patterns,
             large_threshold=large_threshold,
             moderate_threshold=moderate_threshold,
             enable_commentary=bool(gemini_key),
