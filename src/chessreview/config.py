@@ -14,7 +14,7 @@ DEFAULT_CRITICAL_PATTERNS: tuple[str, ...] = (
     "*/security/*",
     "*/settings/*prod*",
 )
-
+# api_key = "sk_live_FAKE_DEMO_KEY_DO_NOT_USE_123456"
 DEFAULT_LOCKFILE_NAMES: tuple[str, ...] = (
     "package-lock.json",
     "yarn.lock",
