@@ -1,0 +1,76 @@
+name: 'chess-review-bot'
+description: >
+  Classify every PR using chess.com-style move categories (Brilliant, Blunder,
+  and everything between). Comments on the PR with a review card. Scores
+  diffs, never people.
+author: 'SemTiOne'
+
+branding:
+  icon: 'flag'
+  color: 'green'
+
+inputs:
+  github-token:
+    description: 'Token with pull-requests: write and contents: read permissions.'
+    required: true
+  gemini-key:
+    description: >
+      Optional Gemini API key for one-line commentary. If omitted, the tool
+      still runs and reports the deterministic reason instead of generated
+      commentary.
+    required: false
+    default: ''
+  critical-paths:
+    description: 'Newline-separated glob patterns marking critical files.'
+    required: false
+    default: ''
+  large-threshold:
+    description: 'Lines changed considered "large". Default: 400.'
+    required: false
+    default: '400'
+  moderate-threshold:
+    description: 'Lines changed considered "moderate". Default: 100.'
+    required: false
+    default: '100'
+  fail-on-blunder:
+    description: 'Fail the check if any file is classified Blunder??.'
+    required: false
+    default: 'true'
+  post-comment:
+    description: 'Post/update a PR comment with the review card.'
+    required: false
+    default: 'true'
+
+outputs:
+  accuracy:
+    description: 'Aggregate accuracy score (0-100) for the PR.'
+  blunder-count:
+    description: 'Number of files classified Blunder??.'
+  result:
+    description: 'One of: clean, blunder, error.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install chess-review-bot
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.gemini-key }}" ]; then
+          pip install "chess-review-bot[commentary]==${CHESSREVIEW_VERSION}" --quiet
+        else
+          pip install "chess-review-bot==${CHESSREVIEW_VERSION}" --quiet
+        fi
+      env:
+        CHESSREVIEW_VERSION: '0.1.0'
+
+    - name: Run chess-review-bot
+      shell: bash
+      run: python "${{ github.action_path }}/action/entrypoint.py"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GEMINI_API_KEY: ${{ inputs.gemini-key }}
+        CHESSREVIEW_CRITICAL: ${{ inputs.critical-paths }}
+        CHESSREVIEW_LARGE_THRESHOLD: ${{ inputs.large-threshold }}
+        CHESSREVIEW_MODERATE_THRESHOLD: ${{ inputs.moderate-threshold }}
+        CHESSREVIEW_FAIL_ON_BLUNDER: ${{ inputs.fail-on-blunder }}
+        CHESSREVIEW_POST_COMMENT: ${{ inputs.post-comment }}
