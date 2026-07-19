@@ -1,6 +1,6 @@
 # chess-review-bot
 
-chess.com's Game Review vocabulary — Brilliant!!, Great!, Best, Excellent, Good,
+Chess Game Review vocabulary — Brilliant!!, Great!, Best, Excellent, Good,
 Book, Inaccuracy?!, Mistake?, Blunder??, Miss — pointed at a git diff instead of
 a chess move.
 
