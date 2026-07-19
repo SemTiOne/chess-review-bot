@@ -26,6 +26,9 @@ Apply that lesson from the start. `classifier.py` is a pure function of
   import graph.
 - Full functionality (classification, exit codes, JSON/Markdown) with zero
   LLM calls and no API key. Commentary is polish, never load-bearing.
+- The rule table is the product's credibility — documented as an explicit
+  ordered list in `classifier.py` itself so it's auditable, not emergent LLM
+  behavior.
 - Trade-off: only as nuanced as the signals it's given. Won't catch subtle
   judgment calls an LLM reading full context might. Intentional ceiling, not
   an oversight — the alternative is the calibration failure this avoids.

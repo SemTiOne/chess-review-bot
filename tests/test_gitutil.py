@@ -171,3 +171,28 @@ def test_sensitive_env_vars_not_passed_to_git_subprocess(repo, monkeypatch):
     # And confirm a real call still works with the filtered environment
     # (i.e. we didn't strip something git actually needs, like PATH/HOME).
     assert is_git_repository(str(repo)) is True
+
+
+# ---- subprocess-level failures (git missing, git hangs) --------------------------
+
+
+def test_git_not_found_raises_git_error(monkeypatch):
+    import subprocess
+
+    def fake_run(*args, **kwargs):
+        raise FileNotFoundError("git not on PATH")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    with pytest.raises(GitError, match="git executable not found"):
+        is_git_repository(".")
+
+
+def test_git_timeout_raises_git_error(monkeypatch):
+    import subprocess
+
+    def fake_run(*args, **kwargs):
+        raise subprocess.TimeoutExpired(cmd=["git"], timeout=30)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    with pytest.raises(GitError, match="timed out"):
+        get_diff("HEAD~1..HEAD", cwd=".")

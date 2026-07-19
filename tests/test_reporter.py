@@ -7,6 +7,7 @@ from chessreview.reporter import (
     IDEMPOTENCY_MARKER,
     FileReport,
     RunReport,
+    render,
     render_json,
     render_markdown,
     render_text,
@@ -119,3 +120,30 @@ def test_render_markdown_contains_table_rows():
     md = render_markdown(report)
     assert "| `src/auth/session.py` | Blunder?? |" in md
     assert "| `src/utils/formatting.py` | Book |" in md
+
+
+# ---- render() dispatcher -----------------------------------------------------
+
+
+def test_render_dispatches_to_json():
+    report = _report()
+    out = render(report, output_format="json")
+    json.loads(out)  # valid JSON, would raise otherwise
+
+
+def test_render_dispatches_to_markdown():
+    report = _report()
+    out = render(report, output_format="markdown")
+    assert IDEMPOTENCY_MARKER in out
+
+
+def test_render_dispatches_to_text_by_default():
+    report = _report()
+    out = render(report, output_format="text")
+    assert "src/auth/session.py" in out
+
+
+def test_render_unknown_format_falls_back_to_text():
+    report = _report()
+    out = render(report, output_format="something-unrecognized")
+    assert "src/auth/session.py" in out

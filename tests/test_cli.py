@@ -125,3 +125,11 @@ index abc123..def456 100644
     # Critical path, zero tests changed anywhere, and no commit message
     # (diff-file mode has no commit messages) -> empty quality -> Blunder.
     assert exit_code == EXIT_BLUNDER
+
+
+def test_cli_debug_flag_prints_signal_dump_to_stderr(tmp_path, capsys):
+    diff_file = _write_diff(tmp_path, GOOD_DIFF)
+    main([diff_file, "--format", "text", "--debug"])
+    err = capsys.readouterr().err
+    assert "[debug]" in err
+    assert "tests/test_foo.py" in err
