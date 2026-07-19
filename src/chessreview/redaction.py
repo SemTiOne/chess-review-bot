@@ -15,7 +15,8 @@ import unicodedata
 REDACTION_MARKER = "[content redacted: possible credential detected]"
 
 _CREDENTIAL_PATTERN = re.compile(
-    r"(key|token|password|secret|api_key|auth|bearer|credentials)\s*[=:]\s*\S+",
+    r"(key|token|password|secret|api_key|auth|bearer|credentials)\s*[=:]\s*\S+"
+    r"|\bbearer\s+\S+",
     re.IGNORECASE,
 )
 
