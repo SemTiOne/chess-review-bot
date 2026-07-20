@@ -65,7 +65,7 @@ runs:
           pip install "chess-review-bot==${CHESSREVIEW_VERSION}" --quiet
         fi
       env:
-        CHESSREVIEW_VERSION: '0.1.0'
+        CHESSREVIEW_VERSION: '0.1.1'
 
     - name: Run chess-review-bot
       shell: bash
