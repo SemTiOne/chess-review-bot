@@ -143,28 +143,6 @@ One comment per PR, updated on every push (idempotency marker
   original: chess terminology for personal decisions, not code.
 - [`env-auditor`](https://github.com/SemTiOne/env-auditor) — finds undocumented, stale, and missing environment variables across JS, Python, Go, Ruby, Shell, and Docker.
 
-## Releasing
-
-Bump `version` in `pyproject.toml` **and** `CHESSREVIEW_VERSION` in `action/action.yml` (has to match; `github.action_ref` is not reliable inside composite actions, so this can't be derived automatically, has to be kept in sync by hand every release). Commit, then:
-
-```bash
-git tag v0.1.1
-git push --tags
-```
-
-`release.yml` runs tests, checks the tag matches `pyproject.toml`, builds, and publishes to PyPI via Trusted Publishing (OIDC). One-time setup on PyPI: add SemTiOne/chess-review-bot as a pending publisher for workflow `release.yml`, environment `pypi`, before the first tag push.
-
-**Floating major-version tag:** consumers reference `@v1`, not `@v0.1.1` directly; same convention as `actions/checkout@v4`. After tagging an exact version, move the floating tag to match:
-
-```bash
-git tag -fa v1 -m "v1"
-git push origin v1 --force
-```
-
-Only do this once the exact-version tag (`v0.1.1`) is already pushed and
-`release.yml` has passed — don't move `v1` to a commit that hasn't been
-verified yet.
-
 ## Trademark note
 
 chess-review-bot is not affiliated with, endorsed by, or sponsored by
