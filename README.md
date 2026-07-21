@@ -25,11 +25,9 @@ chess-review-bot  ────────────────────�
 Result: FAIL (1 Blunder)  ·  Exit code: 1
 ```
 
-## The one design decision that matters
-
 Category is **never** LLM-decided. Deterministic signals (size, test-file
 overlap, critical-path membership, force-push, revert, commit message quality,
-credential leakage) run through a fixed rule table. Delete `commentary.py` —
+credential leakage) run through a fixed rule table. Delete `commentary.py`;
 classification doesn't change.
 
 LLM's only job (optional): phrase an already-decided category in one dry
@@ -166,6 +164,13 @@ git push origin v1 --force
 Only do this once the exact-version tag (`v0.1.1`) is already pushed and
 `release.yml` has passed — don't move `v1` to a commit that hasn't been
 verified yet.
+
+## Trademark note
+
+chess-review-bot is not affiliated with, endorsed by, or sponsored by
+Chess.com. "Chess.com" is a trademark of Chess.com, LLC. The category names
+used here are inspired by chess.com's Game Review feature, applied to git
+diffs instead of chess moves.
 
 ## License
 
