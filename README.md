@@ -99,7 +99,7 @@ Exit codes: `0` clean, `1` Blunder found, `2` tool error.
 | `post-comment` | Post/update the PR review card. | `true` |
 
 One comment per PR, updated on every push (idempotency marker
-`<!-- chess-review-bot-managed-comment -->`) — never a second comment.
+`<!-- chess-review-bot-managed-comment -->`), never a second comment.
 
 ```markdown
 ### ♟️ chess-review-bot — PR Game Review
@@ -116,7 +116,7 @@ One comment per PR, updated on every push (idempotency marker
 ## What this deliberately does NOT do
 
 - **Never scores or names a person.** Diffs and commits only, never authors.
-  An earlier concept scored people ("most toxic collaborator") — rejected on
+  An earlier concept scored people ("most toxic collaborator"); rejected on
   purpose: a screenshotted report naming someone is an HR incident, and no
   manager installs a tool that can start a fight on their team.
 - **Doesn't find bugs.** Severity *communication*, not a correctness/security
@@ -125,7 +125,7 @@ One comment per PR, updated on every push (idempotency marker
   analysis.
 - **Force-push detection is Action-mode only.** Compares `synchronize` event's
   `before`/`after` SHAs via `git merge-base --is-ancestor` (needs
-  `fetch-depth: 0`). CLI can't infer this from reflog — pass `--force-pushed`
+  `fetch-depth: 0`). CLI can't infer this from reflog; pass `--force-pushed`
   to test it locally. (Earlier draft assumed a `forced` payload field; that
   field only exists on `push` events, not `pull_request`. See `CHANGELOG.md`.)
 
