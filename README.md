@@ -99,7 +99,7 @@ Exit codes: `0` clean, `1` Blunder found, `2` tool error.
 | `post-comment` | Post/update the PR review card. | `true` |
 
 One comment per PR, updated on every push (idempotency marker
-`<!-- chess-review-bot-managed-comment -->`) — never a second comment.
+`<!-- chess-review-bot-managed-comment -->`), never a second comment.
 
 ```markdown
 ### ♟️ chess-review-bot — PR Game Review
@@ -116,7 +116,7 @@ One comment per PR, updated on every push (idempotency marker
 ## What this deliberately does NOT do
 
 - **Never scores or names a person.** Diffs and commits only, never authors.
-  An earlier concept scored people ("most toxic collaborator") — rejected on
+  An earlier concept scored people ("most toxic collaborator"); rejected on
   purpose: a screenshotted report naming someone is an HR incident, and no
   manager installs a tool that can start a fight on their team.
 - **Doesn't find bugs.** Severity *communication*, not a correctness/security
@@ -125,7 +125,7 @@ One comment per PR, updated on every push (idempotency marker
   analysis.
 - **Force-push detection is Action-mode only.** Compares `synchronize` event's
   `before`/`after` SHAs via `git merge-base --is-ancestor` (needs
-  `fetch-depth: 0`). CLI can't infer this from reflog — pass `--force-pushed`
+  `fetch-depth: 0`). CLI can't infer this from reflog; pass `--force-pushed`
   to test it locally. (Earlier draft assumed a `forced` payload field; that
   field only exists on `push` events, not `pull_request`. See `CHANGELOG.md`.)
 
@@ -142,28 +142,6 @@ One comment per PR, updated on every push (idempotency marker
 - [`position-evaluator`](https://github.com/SemTiOne/position-evaluator) — the
   original: chess terminology for personal decisions, not code.
 - [`env-auditor`](https://github.com/SemTiOne/env-auditor) — finds undocumented, stale, and missing environment variables across JS, Python, Go, Ruby, Shell, and Docker.
-
-## Releasing
-
-Bump `version` in `pyproject.toml` **and** `CHESSREVIEW_VERSION` in `action/action.yml` (has to match; `github.action_ref` is not reliable inside composite actions, so this can't be derived automatically, has to be kept in sync by hand every release). Commit, then:
-
-```bash
-git tag v0.1.1
-git push --tags
-```
-
-`release.yml` runs tests, checks the tag matches `pyproject.toml`, builds, and publishes to PyPI via Trusted Publishing (OIDC). One-time setup on PyPI: add SemTiOne/chess-review-bot as a pending publisher for workflow `release.yml`, environment `pypi`, before the first tag push.
-
-**Floating major-version tag:** consumers reference `@v1`, not `@v0.1.1` directly; same convention as `actions/checkout@v4`. After tagging an exact version, move the floating tag to match:
-
-```bash
-git tag -fa v1 -m "v1"
-git push origin v1 --force
-```
-
-Only do this once the exact-version tag (`v0.1.1`) is already pushed and
-`release.yml` has passed — don't move `v1` to a commit that hasn't been
-verified yet.
 
 ## Trademark note
 
