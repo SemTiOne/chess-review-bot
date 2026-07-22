@@ -6,6 +6,18 @@ Follows [Keep a Changelog](https://keepachangelog.com/) loosely.
 
 ### Fixed
 
+- `requirements.txt` (and `requirements-*.txt` variants) weren't
+  recognized as a dependency manifest at all; a version-only bump was
+  scored like any other change instead of routine `Book`. Found via two
+  real repos with 9+ such files between them. `package.json`/
+  `pyproject.toml`'s version-line pattern doesn't match pip's `==`/`>=`/
+  `~=` operators either, so this needed its own pattern, not just a name
+  added to an existing list.
+
+## [0.1.2]
+
+### Fixed
+
 - Credential detection flagged safe env/config lookups
   (`os.environ["X"]`, `config["X"]`, `os.getenv(...)`, `settings.X`) as
   leaked secrets, purely because they matched `keyword = <anything>`.
