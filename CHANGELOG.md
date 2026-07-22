@@ -1,10 +1,39 @@
 # Changelog
 
-Follows [Keep a Changelog](https://keepachangelog.com/) loosely. No release
-yet; everything below is Unreleased. Entries move out only once a version
-is actually tagged and published.
+Follows [Keep a Changelog](https://keepachangelog.com/) loosely.
 
 ## [Unreleased]
+
+### Fixed
+
+- Credential detection flagged safe env/config lookups
+  (`os.environ["X"]`, `config["X"]`, `os.getenv(...)`, `settings.X`) as
+  leaked secrets, purely because they matched `keyword = <anything>`.
+  Found by running the detector against real tutorial repos that load
+  API keys this way (a very common, safe pattern). A hardcoded literal
+  value is still flagged exactly as before.
+
+## [0.1.1]
+
+### Fixed
+
+- `action.yml` referenced `${{ github.action_path }}/action/entrypoint.py`
+  -- `github.action_path` already points at the directory containing
+  `action.yml`, so this doubled the path segment and every Action run
+  failed with exit code 2 before classifying anything. Found immediately
+  via dogfooding on this repo's own PRs.
+- `Great!` required only "some test file changed somewhere in the PR,"
+  not a test file matching *this* file. A PR touching an unrelated file
+  plus a totally unrelated test made the unrelated file inherit "Great!"
+  it had nothing to do with. Now requires a same-named test file
+  (`foo.py` <-> `test_foo.py`) changed in the same PR.
+- The Action's `critical-paths` input replaced the built-in defaults
+  entirely instead of adding to them, unlike the CLI's `--critical`
+  (additive) vs `--only-critical` (replace) split. Found while wiring up
+  `env-auditor`/`standup-bot`. Added a separate `only-critical-paths`
+  input for the replace case; `critical-paths` is additive now.
+
+## [0.1.0]
 
 ### Added
 
@@ -26,3 +55,6 @@ is actually tagged and published.
   comments, avoiding duplicate comments on busy PRs.
 - GitHub API calls retry once on `429`/`5xx` with backoff (`Retry-After`
   honored) instead of failing immediately on a transient blip.
+- Credential regex never matched `Bearer <token>` (HTTP header convention
+  is space-separated, not `=`/`:`-separated) -- a leaked Bearer token
+  would have passed through unredacted. Added a dedicated pattern for it.

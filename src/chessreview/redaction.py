@@ -15,8 +15,13 @@ import unicodedata
 REDACTION_MARKER = "[content redacted: possible credential detected]"
 
 _CREDENTIAL_PATTERN = re.compile(
-    r"(key|token|password|secret|api_key|auth|bearer|credentials)\s*[=:]\s*\S+"
-    r"|\bbearer\s+\S+",
+    r"(?:key|token|password|secret|api_key|auth|bearer|credentials)\s*[=:]\s*(\S+)"
+    r"|\bbearer\s+(\S+)",
+    re.IGNORECASE,
+)
+
+_SAFE_REFERENCE_RE = re.compile(
+    r"^(os\.environ|os\.getenv\(|getenv\(|process\.env|config\[|config\.get\(|settings\.)",
     re.IGNORECASE,
 )
 
@@ -24,16 +29,24 @@ _ANSI_PATTERN = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 _CONTROL_CHAR_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 
 
+def _matches_credential(text: str) -> bool:
+    for match in _CREDENTIAL_PATTERN.finditer(text):
+        value = match.group(1) or match.group(2) or ""
+        if not _SAFE_REFERENCE_RE.match(value):
+            return True
+    return False
+
+
 def contains_credential(text: str) -> bool:
     """True if `text` matches a credential-shaped pattern."""
-    return bool(_CREDENTIAL_PATTERN.search(text))
+    return _matches_credential(text)
 
 
 def redact_credentials(text: str) -> tuple[str, bool]:
     """Redact `text` if credential-shaped. Returns (text, was_redacted)."""
     if not text:
         return text, False
-    if _CREDENTIAL_PATTERN.search(text):
+    if _matches_credential(text):
         return REDACTION_MARKER, True
     return text, False
 
