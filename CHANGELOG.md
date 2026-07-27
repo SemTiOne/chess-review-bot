@@ -4,8 +4,14 @@ Follows [Keep a Changelog](https://keepachangelog.com/) loosely.
 
 ## [Unreleased]
 
+## [0.1.4]
+
 ### Fixed
 
+- GitHub CodeQL alerts: added explicit top-level and job-level
+  `permissions` blocks to `ci.yml` and `release.yml`, closing four
+  alerts about missing workflow permissions (least-privilege best
+  practice).
 - `requirements.txt` (and `requirements-*.txt` variants) weren't
   recognized as a dependency manifest at all; a version-only bump was
   scored like any other change instead of routine `Book`. Found via two
