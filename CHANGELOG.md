@@ -20,6 +20,16 @@ Follows [Keep a Changelog](https://keepachangelog.com/) loosely.
   `~=` operators either, so this needed its own pattern, not just a name
   added to an existing list.
 
+### Added
+
+- `CONTRIBUTING.md` guide for new contributors.
+- `dependabot.yml` for automated dependency updates.
+- GitHub Actions dependency bumps (github-actions group, 4 updates).
+
+## [0.1.3]
+
+Chore: version bump to 0.1.3.
+
 ## [0.1.2]
 
 ### Fixed
