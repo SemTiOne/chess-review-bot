@@ -16,6 +16,7 @@ permissions:
 jobs:
   test:
     name: "Python ${{ matrix.python-version }} / ${{ matrix.os }}"
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -60,6 +61,7 @@ jobs:
   pre-commit:
     name: "Pre-commit"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v7
