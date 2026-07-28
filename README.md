@@ -1,5 +1,8 @@
 # chess-review-bot
 
+[![CI](https://github.com/SemTiOne/chess-review-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/SemTiOne/chess-review-bot/actions)
+[![codecov](https://codecov.io/gh/SemTiOne/chess-review-bot/graph/badge.svg)](https://codecov.io/gh/SemTiOne/chess-review-bot)
+
 chess.com's Game Review vocabulary — Brilliant!!, Great!, Best, Excellent, Good,
 Book, Inaccuracy?!, Mistake?, Blunder??, Miss — pointed at a git diff instead of
 a chess move.
