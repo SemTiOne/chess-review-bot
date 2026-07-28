@@ -73,7 +73,11 @@ def classify_file(
         return result(Category.BLUNDER, "force-push detected over existing history")
 
     # 3. Critical path, zero tests in PR, no description at all.
-    if fs.is_critical and pr.test_files_changed == 0 and pr.commit_message_quality == "empty":
+    if (
+        fs.is_critical
+        and pr.test_files_changed == 0
+        and pr.commit_message_quality == "empty"
+    ):
         return result(
             Category.BLUNDER,
             "touches a critical path with no tests and no description",
@@ -143,7 +147,9 @@ def classify_file(
     return result(Category.GOOD, "no notable risk or quality signals")
 
 
-def compute_accuracy(results: list[ClassificationResult], line_weights: list[int]) -> float:
+def compute_accuracy(
+    results: list[ClassificationResult], line_weights: list[int]
+) -> float:
     """Weighted avg of category weight by lines-changed per file.
     Zero-line files (pure renames) get a floor weight of 1."""
     if not results:

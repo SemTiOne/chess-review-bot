@@ -63,7 +63,9 @@ class RunReport:
         return 1 if self.blunder_count > 0 else 0
 
 
-def render_text(report: RunReport, use_color: bool = True, summary_only: bool = False) -> str:
+def render_text(
+    report: RunReport, use_color: bool = True, summary_only: bool = False
+) -> str:
     header = (
         f"chess-review-bot  {'-' * 44}\n"
         f"  Diff:        {report.diff_range}  ·  {len(report.files)} files"
@@ -88,9 +90,13 @@ def render_text(report: RunReport, use_color: bool = True, summary_only: bool = 
 
     lines.append("-" * 60)
     result_word = "FAIL" if report.exit_code else "PASS"
-    lines.append(f"Result: {result_word} ({report.blunder_count} Blunder)  ·  Exit code: {report.exit_code}")
+    lines.append(
+        f"Result: {result_word} ({report.blunder_count} Blunder)  ·  Exit code: {report.exit_code}"
+    )
     if report.commentary_capped:
-        lines.append("(commentary call limit reached for this run; remaining files use fallback text)")
+        lines.append(
+            "(commentary call limit reached for this run; remaining files use fallback text)"
+        )
     return "\n".join(lines)
 
 
@@ -147,7 +153,12 @@ def render_markdown(report: RunReport) -> str:
     return "\n".join(lines)
 
 
-def render(report: RunReport, output_format: str, use_color: bool = True, summary_only: bool = False) -> str:
+def render(
+    report: RunReport,
+    output_format: str,
+    use_color: bool = True,
+    summary_only: bool = False,
+) -> str:
     if output_format == "json":
         return render_json(report)
     if output_format == "markdown":

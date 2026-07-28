@@ -223,7 +223,9 @@ def test_extract_pr_signals_aggregates_correctly():
     diff = ParsedDiff(
         files=(
             _file("src/auth/session.py", hunks=(_hunk(added=("x = 1",)),)),
-            _file("tests/test_session.py", hunks=(_hunk(added=("def test_x(): pass",)),)),
+            _file(
+                "tests/test_session.py", hunks=(_hunk(added=("def test_x(): pass",)),)
+            ),
         )
     )
     git_ctx = GitContext(commit_messages=("Add session refresh handling",))
@@ -273,7 +275,9 @@ def test_has_matching_test_false_for_unrelated_file():
     diff = ParsedDiff(
         files=(
             _file("action/action.yml", hunks=(_hunk(added=("foo: bar",)),)),
-            _file("tests/test_redaction.py", hunks=(_hunk(added=("def test_x(): pass",)),)),
+            _file(
+                "tests/test_redaction.py", hunks=(_hunk(added=("def test_x(): pass",)),)
+            ),
         )
     )
     pr_signals = extract_pr_signals(diff, GitContext(), config)
@@ -284,7 +288,9 @@ def test_has_matching_test_false_for_unrelated_file():
 def test_has_matching_test_always_false_on_test_files_themselves():
     config = Config()
     diff = ParsedDiff(
-        files=(_file("tests/test_foo.py", hunks=(_hunk(added=("def test_x(): pass",)),)),)
+        files=(
+            _file("tests/test_foo.py", hunks=(_hunk(added=("def test_x(): pass",)),)),
+        )
     )
     pr_signals = extract_pr_signals(diff, GitContext(), config)
     assert pr_signals.files[0].has_matching_test is False

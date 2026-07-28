@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from chessreview.classifier import CATEGORY_WEIGHT, Category, classify_file, compute_accuracy
+from chessreview.classifier import (
+    CATEGORY_WEIGHT,
+    Category,
+    classify_file,
+    compute_accuracy,
+)
 from chessreview.config import Config
 from chessreview.signals import FileSignals, PRSignals
 
@@ -204,7 +209,9 @@ def test_rule_great_requires_matching_test_not_just_any_test_in_pr():
 
 def test_rule_best_single_small_file():
     fs = _fs(lines_added=5, lines_removed=2)
-    pr = _pr(files=(fs,), total_files=1, test_files_changed=0, commit_message_quality="vague")
+    pr = _pr(
+        files=(fs,), total_files=1, test_files_changed=0, commit_message_quality="vague"
+    )
     result = classify_file(fs, pr, CONFIG)
     assert result.category == Category.BEST
 
@@ -262,7 +269,9 @@ def test_compute_accuracy_weighted_average():
     from chessreview.classifier import ClassificationResult
 
     results = [
-        ClassificationResult(Category.BLUNDER, ("x",), CATEGORY_WEIGHT[Category.BLUNDER]),
+        ClassificationResult(
+            Category.BLUNDER, ("x",), CATEGORY_WEIGHT[Category.BLUNDER]
+        ),
         ClassificationResult(Category.BOOK, ("y",), CATEGORY_WEIGHT[Category.BOOK]),
     ]
     # Blunder file is 300 lines, Book file is 1 line -- Blunder should dominate.

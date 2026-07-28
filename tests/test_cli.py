@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
 
 from chessreview.cli import EXIT_BLUNDER, EXIT_ERROR, EXIT_OK, main
 
@@ -84,7 +83,9 @@ def test_cli_invalid_threshold_config_exits_error(tmp_path, capsys):
     assert "invalid configuration" in err
 
 
-def test_cli_missing_diff_file_and_not_a_repo_exits_error(tmp_path, capsys, monkeypatch):
+def test_cli_missing_diff_file_and_not_a_repo_exits_error(
+    tmp_path, capsys, monkeypatch
+):
     monkeypatch.chdir(tmp_path)  # tmp_path is not a git repo
     exit_code = main(["/nonexistent/path/does-not-exist.diff"])
     assert exit_code == EXIT_ERROR
@@ -119,9 +120,7 @@ index abc123..def456 100644
 +y = 2
 """
     diff_file = _write_diff(tmp_path, diff_text)
-    exit_code = main(
-        [diff_file, "--only-critical", "*formatting*", "--format", "text"]
-    )
+    exit_code = main([diff_file, "--only-critical", "*formatting*", "--format", "text"])
     # Critical path, zero tests changed anywhere, and no commit message
     # (diff-file mode has no commit messages) -> empty quality -> Blunder.
     assert exit_code == EXIT_BLUNDER

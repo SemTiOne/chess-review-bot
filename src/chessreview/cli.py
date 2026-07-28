@@ -15,7 +15,12 @@ from chessreview.classifier import classify_file, compute_accuracy
 from chessreview.commentary import CommentaryBudget, generate_commentary
 from chessreview.config import DEFAULT_CRITICAL_PATTERNS, DEFAULT_GEMINI_MODEL, Config
 from chessreview.diff_parser import parse_unified_diff
-from chessreview.gitutil import GitError, get_commit_messages, get_diff, is_git_repository
+from chessreview.gitutil import (
+    GitError,
+    get_commit_messages,
+    get_diff,
+    is_git_repository,
+)
 from chessreview.reporter import FileReport, RunReport, render
 from chessreview.signals import GitContext, extract_pr_signals
 
@@ -37,7 +42,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
         '"-" to read a diff from stdin. Default: "HEAD~1..HEAD".',
     )
     parser.add_argument("--critical", action="append", default=[], metavar="PATTERN")
-    parser.add_argument("--only-critical", action="append", default=[], metavar="PATTERN")
+    parser.add_argument(
+        "--only-critical", action="append", default=[], metavar="PATTERN"
+    )
     parser.add_argument("--large-threshold", type=int, default=400)
     parser.add_argument("--moderate-threshold", type=int, default=100)
     parser.add_argument("--force-pushed", action="store_true")

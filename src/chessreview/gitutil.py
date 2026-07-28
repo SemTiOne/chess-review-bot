@@ -48,7 +48,9 @@ def _run_git(args: list[str], cwd: str | None = None) -> GitCallResult:
     except FileNotFoundError as exc:
         raise GitError("git executable not found on PATH") from exc
     except subprocess.TimeoutExpired as exc:
-        raise GitError(f"git call timed out after {GIT_TIMEOUT_SECONDS}s: {args}") from exc
+        raise GitError(
+            f"git call timed out after {GIT_TIMEOUT_SECONDS}s: {args}"
+        ) from exc
     return GitCallResult(
         returncode=completed.returncode,
         stdout=completed.stdout,
@@ -66,7 +68,9 @@ def get_diff(ref_range: str, cwd: str | None = None) -> str:
     empty string for a valid no-op range is not an error."""
     result = _run_git(["diff", "--unified=3", ref_range], cwd=cwd)
     if result.returncode != 0:
-        raise GitError(f"git diff failed for range {ref_range!r}: {result.stderr.strip()}")
+        raise GitError(
+            f"git diff failed for range {ref_range!r}: {result.stderr.strip()}"
+        )
     return result.stdout
 
 
@@ -78,7 +82,9 @@ def get_commit_messages(ref_range: str, cwd: str | None = None) -> tuple[str, ..
     return tuple(line for line in result.stdout.splitlines() if line.strip())
 
 
-def is_ancestor(ancestor_sha: str, descendant_sha: str, cwd: str | None = None) -> bool | None:
+def is_ancestor(
+    ancestor_sha: str, descendant_sha: str, cwd: str | None = None
+) -> bool | None:
     """Is `ancestor_sha` an ancestor of `descendant_sha`?
 
     Force-push detection for `pull_request` `synchronize` events: compare
@@ -92,7 +98,9 @@ def is_ancestor(ancestor_sha: str, descendant_sha: str, cwd: str | None = None) 
     """
     if not ancestor_sha or not descendant_sha:
         return None
-    result = _run_git(["merge-base", "--is-ancestor", ancestor_sha, descendant_sha], cwd=cwd)
+    result = _run_git(
+        ["merge-base", "--is-ancestor", ancestor_sha, descendant_sha], cwd=cwd
+    )
     if result.returncode == 0:
         return True
     if result.returncode == 1:

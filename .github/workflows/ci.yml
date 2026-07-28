@@ -36,3 +36,20 @@ jobs:
 
       - name: Smoke test against this repository's own history
         run: chessreview HEAD~1..HEAD --summary || true
+
+  pre-commit:
+    name: "Pre-commit"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files

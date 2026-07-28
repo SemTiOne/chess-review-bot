@@ -26,7 +26,9 @@ def _sleep(seconds: float) -> None:
     time.sleep(seconds)
 
 
-def _request(method: str, url: str, token: str, body: dict | None = None) -> dict | list:
+def _request(
+    method: str, url: str, token: str, body: dict | None = None
+) -> dict | list:
     if not url.startswith(API_ROOT + "/"):
         raise GitHubApiError(f"refusing to call non-GitHub-API URL: {url}")
 
@@ -55,18 +57,26 @@ def _request(method: str, url: str, token: str, body: dict | None = None) -> dic
             if retryable and attempt < MAX_RETRIES:
                 retry_after = exc.headers.get("Retry-After") if exc.headers else None
                 try:
-                    delay = float(retry_after) if retry_after else RETRY_BACKOFF_SECONDS * (2**attempt)
+                    delay = (
+                        float(retry_after)
+                        if retry_after
+                        else RETRY_BACKOFF_SECONDS * (2**attempt)
+                    )
                 except ValueError:
                     delay = RETRY_BACKOFF_SECONDS * (2**attempt)
                 _sleep(delay)
                 continue
-            raise GitHubApiError(f"GitHub API {method} {url} failed: HTTP {exc.code}") from exc
+            raise GitHubApiError(
+                f"GitHub API {method} {url} failed: HTTP {exc.code}"
+            ) from exc
         except urllib.error.URLError as exc:
             last_error = exc
             if attempt < MAX_RETRIES:
                 _sleep(RETRY_BACKOFF_SECONDS * (2**attempt))
                 continue
-            raise GitHubApiError(f"GitHub API {method} {url} failed: {exc.reason}") from exc
+            raise GitHubApiError(
+                f"GitHub API {method} {url} failed: {exc.reason}"
+            ) from exc
 
     raise GitHubApiError(f"GitHub API {method} {url} failed: {last_error}")
 

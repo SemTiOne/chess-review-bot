@@ -131,7 +131,9 @@ def main() -> int:
     if payload.get("action") == "synchronize":
         before_sha = payload.get("before")
         after_sha = payload.get("after")
-        ancestry = is_ancestor(before_sha, after_sha) if (before_sha and after_sha) else None
+        ancestry = (
+            is_ancestor(before_sha, after_sha) if (before_sha and after_sha) else None
+        )
         forced = ancestry is False
 
     repository = os.environ.get("GITHUB_REPOSITORY", "")
@@ -211,7 +213,9 @@ def main() -> int:
                 body=render_markdown(report),
             )
         except GitHubApiError as exc:
-            print(f"chess-review-bot: failed to post PR comment: {exc}", file=sys.stderr)
+            print(
+                f"chess-review-bot: failed to post PR comment: {exc}", file=sys.stderr
+            )
 
     if fail_on_blunder and report.blunder_count > 0:
         return EXIT_BLUNDER

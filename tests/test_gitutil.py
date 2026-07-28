@@ -33,7 +33,11 @@ def repo(tmp_path):
 
 def _head_sha(cwd: str) -> str:
     result = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=cwd, check=True, capture_output=True, text=True
+        ["git", "rev-parse", "HEAD"],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     return result.stdout.strip()
 

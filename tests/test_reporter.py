@@ -15,24 +15,27 @@ from chessreview.reporter import (
 
 
 def _report(**overrides) -> RunReport:
-    files = overrides.pop("files", (
-        FileReport(
-            path="src/auth/session.py",
-            category=Category.BLUNDER,
-            reasons=("critical path, no tests, no description",),
-            commentary="",
-            lines_added=120,
-            lines_removed=4,
+    files = overrides.pop(
+        "files",
+        (
+            FileReport(
+                path="src/auth/session.py",
+                category=Category.BLUNDER,
+                reasons=("critical path, no tests, no description",),
+                commentary="",
+                lines_added=120,
+                lines_removed=4,
+            ),
+            FileReport(
+                path="src/utils/formatting.py",
+                category=Category.BOOK,
+                reasons=("routine dependency or formatting-only change",),
+                commentary="",
+                lines_added=3,
+                lines_removed=3,
+            ),
         ),
-        FileReport(
-            path="src/utils/formatting.py",
-            category=Category.BOOK,
-            reasons=("routine dependency or formatting-only change",),
-            commentary="",
-            lines_added=3,
-            lines_removed=3,
-        ),
-    ))
+    )
     defaults = dict(files=files, accuracy=42.0, diff_range="HEAD~1..HEAD")
     defaults.update(overrides)
     return RunReport(**defaults)
@@ -49,9 +52,7 @@ def test_exit_code_nonzero_when_blunder_present():
 
 
 def test_exit_code_zero_when_no_blunder():
-    files = (
-        FileReport("src/foo.py", Category.GOOD, (), "", 5, 2),
-    )
+    files = (FileReport("src/foo.py", Category.GOOD, (), "", 5, 2),)
     report = _report(files=files)
     assert report.exit_code == 0
 

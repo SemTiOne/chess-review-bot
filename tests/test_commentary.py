@@ -29,7 +29,9 @@ def _fs(**overrides) -> FileSignals:
     return FileSignals(**defaults)
 
 
-def _install_fake_genai(monkeypatch, response_text: str | None, raise_on_call: Exception | None = None):
+def _install_fake_genai(
+    monkeypatch, response_text: str | None, raise_on_call: Exception | None = None
+):
     """Install a fake `google.genai` module tree into sys.modules and return
     the mock client class so call arguments can be inspected.
     """
@@ -91,7 +93,9 @@ def test_commentary_sdk_not_installed_falls_back(monkeypatch):
 
 
 def test_commentary_budget_exhausted_skips_call(monkeypatch):
-    mock_client_class = _install_fake_genai(monkeypatch, response_text="should not be used")
+    mock_client_class = _install_fake_genai(
+        monkeypatch, response_text="should not be used"
+    )
     config = Config(enable_commentary=True, gemini_api_key="fake-key")
     budget = CommentaryBudget(max_calls=0)
     text = generate_commentary(Category.GOOD, ("ok",), _fs(), config, budget=budget)
@@ -116,7 +120,11 @@ def test_commentary_success_returns_model_text(monkeypatch):
 
 def test_commentary_client_called_with_configured_model(monkeypatch):
     mock_client_class = _install_fake_genai(monkeypatch, response_text="Fine.")
-    config = Config(enable_commentary=True, gemini_api_key="fake-key", gemini_model="gemini-3.5-flash")
+    config = Config(
+        enable_commentary=True,
+        gemini_api_key="fake-key",
+        gemini_model="gemini-3.5-flash",
+    )
     generate_commentary(Category.GOOD, (), _fs(), config)
     mock_client_class.assert_called_once_with(api_key="fake-key")
     instance = mock_client_class.return_value
@@ -142,7 +150,9 @@ def test_commentary_none_response_falls_back(monkeypatch):
 
 
 def test_commentary_api_exception_falls_back(monkeypatch):
-    _install_fake_genai(monkeypatch, response_text=None, raise_on_call=TimeoutError("slow"))
+    _install_fake_genai(
+        monkeypatch, response_text=None, raise_on_call=TimeoutError("slow")
+    )
     config = Config(enable_commentary=True, gemini_api_key="fake-key")
     text = generate_commentary(Category.BLUNDER, ("secret detected",), _fs(), config)
     assert text == "Blunder??: secret detected"

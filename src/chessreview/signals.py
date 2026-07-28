@@ -20,9 +20,7 @@ from chessreview.redaction import contains_credential
 
 _TODO_FIXME_RE = re.compile(r"\b(TODO|FIXME|XXX|HACK)\b")
 _VERSION_LINE_RE = re.compile(r'^\s*"?[\w.@/-]+"?\s*[:=]\s*"?[\^~]?\d+\.\d+')
-_TEST_DISABLE_RE = re.compile(
-    r"(\.skip\(|@skip\b|xfail\b|it\.skip\(|describe\.skip\()"
-)
+_TEST_DISABLE_RE = re.compile(r"(\.skip\(|@skip\b|xfail\b|it\.skip\(|describe\.skip\()")
 # Note: `@pytest.mark.skip(...)` and `it.skip(`/`describe.skip(` all already
 # contain the literal `.skip(` substring, so the first alternative alone
 # covers them; `it\.skip\(`/`describe\.skip\(` are kept only as
@@ -146,7 +144,7 @@ def _disables_tests(file: DiffFile) -> bool:
 
 
 def classify_commit_message_quality(messages: tuple[str, ...]) -> str:
-    """"good" | "vague" | "hostile" | "empty". Denylist heuristic, not sentiment analysis."""
+    """ "good" | "vague" | "hostile" | "empty". Denylist heuristic, not sentiment analysis."""
     joined = " ".join(m.strip() for m in messages if m.strip())
     if not joined:
         return "empty"
@@ -173,11 +171,14 @@ def extract_file_signals(file: DiffFile, config: Config) -> FileSignals:
         lines_removed=file.removed_count,
         net_lines=net_lines,
         is_test_file=is_test_file(file.path),
-        is_critical=_matches_any(file.path, config.critical_patterns) and not file.is_binary,
+        is_critical=_matches_any(file.path, config.critical_patterns)
+        and not file.is_binary,
         secrets_detected=0 if file.is_binary else _count_secrets(file),
         disables_tests=False if file.is_binary else _disables_tests(file),
         todo_fixme_added=0 if file.is_binary else _count_todo_fixme(file),
-        is_dependency_lockfile=_is_dependency_lockfile(file) if not file.is_binary else False,
+        is_dependency_lockfile=_is_dependency_lockfile(file)
+        if not file.is_binary
+        else False,
         is_formatting_only=_is_formatting_only(file) if not file.is_binary else False,
     )
 
@@ -195,7 +196,9 @@ def extract_pr_signals(
 
     test_stems = {_file_stem(fs.path) for fs in file_signals if fs.is_test_file}
     file_signals = tuple(
-        fs if fs.is_test_file else replace(fs, has_matching_test=_file_stem(fs.path) in test_stems)
+        fs
+        if fs.is_test_file
+        else replace(fs, has_matching_test=_file_stem(fs.path) in test_stems)
         for fs in file_signals
     )
 
