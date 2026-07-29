@@ -21,7 +21,12 @@ from chessreview.syntax_check import file_fails_to_parse
 
 _TODO_FIXME_RE = re.compile(r"\b(TODO|FIXME|XXX|HACK)\b")
 _VERSION_LINE_RE = re.compile(r'^\s*"?[\w.@/-]+"?\s*[:=]\s*"?[\^~]?\d+\.\d+')
-_TEST_DISABLE_RE = re.compile(r"(\.skip\(|@skip\b|xfail\b|it\.skip\(|describe\.skip\()")
+_TEST_DISABLE_RE = re.compile(r"(\.skip\(|@skip\b|xfail\b|it\.skip\(|describe\.skip\(")
+_PLACEHOLDER_RE = re.compile(
+    r"^\s*(#\s*)?\b(?:asdf|qwerty|placeholder|peak|lorem|ipsum|delete_me|remove_this|testtest|foobar)\b\s*$",
+    re.IGNORECASE,
+)
+_COMMENT_OR_BLANK_LINE_RE = re.compile(r"^\s*(#.*)?$")
 # Note: `@pytest.mark.skip(...)` and `it.skip(`/`describe.skip(` all already
 # contain the literal `.skip(` substring, so the first alternative alone
 # covers them; `it\.skip\(`/`describe\.skip\(` are kept only as
@@ -68,6 +73,8 @@ class FileSignals:
     is_formatting_only: bool
     has_matching_test: bool = False
     fails_to_parse: bool = False
+    has_placeholder_content: bool = False
+    is_comment_only_change: bool = False
 
 
 @dataclass(frozen=True)
@@ -145,6 +152,25 @@ def _disables_tests(file: DiffFile) -> bool:
     return False
 
 
+def _has_placeholder_content(file: DiffFile) -> bool:
+    return any(
+        _PLACEHOLDER_RE.match(line) for hunk in file.hunks for line in hunk.added_lines
+    )
+
+
+def _is_comment_only_change(file: DiffFile) -> bool:
+    if file.added_count == 0 and file.removed_count == 0:
+        return False
+    for hunk in file.hunks:
+        for line in hunk.added_lines:
+            if not _COMMENT_OR_BLANK_LINE_RE.match(line):
+                return False
+        for line in hunk.removed_lines:
+            if not _COMMENT_OR_BLANK_LINE_RE.match(line):
+                return False
+    return True
+
+
 def classify_commit_message_quality(messages: tuple[str, ...]) -> str:
     """ "good" | "vague" | "hostile" | "empty". Denylist heuristic, not sentiment analysis."""
     joined = " ".join(m.strip() for m in messages if m.strip())
@@ -169,22 +195,28 @@ def extract_file_signals(
 ) -> FileSignals:
     """Deterministic signals for one file in the diff."""
     net_lines = file.added_count - file.removed_count
+    is_binary = file.is_binary
     return FileSignals(
         path=file.path,
         lines_added=file.added_count,
         lines_removed=file.removed_count,
         net_lines=net_lines,
         is_test_file=is_test_file(file.path),
-        is_critical=_matches_any(file.path, config.critical_patterns)
-        and not file.is_binary,
-        secrets_detected=0 if file.is_binary else _count_secrets(file),
-        disables_tests=False if file.is_binary else _disables_tests(file),
-        todo_fixme_added=0 if file.is_binary else _count_todo_fixme(file),
+        is_critical=_matches_any(file.path, config.critical_patterns) and not is_binary,
+        secrets_detected=0 if is_binary else _count_secrets(file),
+        disables_tests=False if is_binary else _disables_tests(file),
+        todo_fixme_added=0 if is_binary else _count_todo_fixme(file),
         is_dependency_lockfile=_is_dependency_lockfile(file)
-        if not file.is_binary
+        if not is_binary
         else False,
-        is_formatting_only=_is_formatting_only(file) if not file.is_binary else False,
+        is_formatting_only=_is_formatting_only(file) if not is_binary else False,
         fails_to_parse=bool(file_fails_to_parse(file, repo_root)),
+        has_placeholder_content=_has_placeholder_content(file)
+        if not is_binary
+        else False,
+        is_comment_only_change=_is_comment_only_change(file)
+        if not is_binary
+        else False,
     )
 
 

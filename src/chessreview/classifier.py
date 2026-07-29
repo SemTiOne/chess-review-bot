@@ -126,18 +126,32 @@ def classify_file(
     if fs.todo_fixme_added > 0 and pr.commit_message_quality in ("vague", "empty"):
         return result(Category.INACCURACY, "adds TODO/FIXME with no context")
 
-    # 10. Routine: dependency bump or pure reformatting.
+    # 10. Placeholder or throwaway content (e.g. "peak", "asdf", "lorem ipsum").
+    if fs.has_placeholder_content and not fs.is_test_file:
+        return result(
+            Category.MISTAKE,
+            "adds placeholder or meaningless content",
+        )
+
+    # 11. Comment-only change with no functional code impact.
+    if fs.is_comment_only_change and not fs.is_test_file:
+        return result(
+            Category.INACCURACY,
+            "comment-only change with no functional impact",
+        )
+
+    # 12. Routine: dependency bump or pure reformatting.
     if fs.is_dependency_lockfile or fs.is_formatting_only:
         return result(Category.BOOK, "routine dependency or formatting-only change")
 
-    # 11. Net code reduction, tests maintained, not critical.
+    # 13. Net code reduction, tests maintained, not critical.
     if fs.net_lines <= -50 and pr.test_files_changed > 0 and not fs.is_critical:
         return result(
             Category.BRILLIANT,
             "net code reduction with maintained test coverage",
         )
 
-    # 12. This specific file has a plausibly-corresponding test file also
+    # 14. This specific file has a plausibly-corresponding test file also
     #     changed in the PR (not just "some test changed somewhere").
     if (
         fs.has_matching_test
@@ -146,15 +160,15 @@ def classify_file(
     ):
         return result(Category.GREAT, "has a matching test file changed alongside it")
 
-    # 13. Small, single-file, single-purpose change.
+    # 15. Small, single-file, single-purpose change.
     if pr.total_files == 1 and total_lines <= config.moderate_threshold:
         return result(Category.BEST, "small, focused, single-file change")
 
-    # 14. Moderate size, nothing flagged.
+    # 16. Moderate size, nothing flagged.
     if total_lines <= config.large_threshold:
         return result(Category.EXCELLENT, "moderate change, no risk signals")
 
-    # 15. Default.
+    # 17. Default.
     return result(Category.GOOD, "no notable risk or quality signals")
 
 
