@@ -97,6 +97,3 @@ class Config:
             )
         if self.max_commentary_calls_per_run < 0:
             raise ValueError("max_commentary_calls_per_run must be non-negative")
-
-
-# peak
