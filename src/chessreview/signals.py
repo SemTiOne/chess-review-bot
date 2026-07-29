@@ -21,7 +21,7 @@ from chessreview.syntax_check import file_fails_to_parse
 
 _TODO_FIXME_RE = re.compile(r"\b(TODO|FIXME|XXX|HACK)\b")
 _VERSION_LINE_RE = re.compile(r'^\s*"?[\w.@/-]+"?\s*[:=]\s*"?[\^~]?\d+\.\d+')
-_TEST_DISABLE_RE = re.compile(r"(\.skip\(|@skip\b|xfail\b|it\.skip\(|describe\.skip\(")
+_TEST_DISABLE_RE = re.compile(r"(\.skip\(|@skip\b|xfail\b|it\.skip\(|describe\.skip\()")
 _PLACEHOLDER_RE = re.compile(
     r"^\s*(#\s*)?\b(?:asdf|qwerty|placeholder|peak|lorem|ipsum|delete_me|remove_this|testtest|foobar)\b\s*$",
     re.IGNORECASE,
