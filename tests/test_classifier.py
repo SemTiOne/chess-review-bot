@@ -203,7 +203,106 @@ def test_rule_formatting_only_is_book():
     assert result.category == Category.BOOK
 
 
-# ---- Rule 11: brilliant deletion ------------------------------------------------
+# ---- Rule 10: placeholder / meaningless content ---------------------------------
+
+
+def test_rule_placeholder_is_mistake():
+    fs = _fs(has_placeholder_content=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.MISTAKE
+    assert "placeholder" in result.reasons[0]
+
+
+def test_rule_placeholder_allows_test_files():
+    fs = _fs(has_placeholder_content=True, is_test_file=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category != Category.MISTAKE
+
+
+# ---- Rule 11: debug artifact ----------------------------------------------------
+
+
+def test_rule_debug_artifact_is_mistake():
+    fs = _fs(has_debug_artifact=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.MISTAKE
+    assert "debug artifact" in result.reasons[0]
+
+
+def test_rule_debug_artifact_fires_on_test_files_too():
+    """Debug artifacts are flagged regardless of test file status."""
+    fs = _fs(has_debug_artifact=True, is_test_file=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.MISTAKE
+    assert "debug artifact" in result.reasons[0]
+
+
+# ---- Rule 12: low-entropy content -----------------------------------------------
+
+
+def test_rule_low_entropy_is_mistake():
+    fs = _fs(is_low_entropy_change=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.MISTAKE
+
+
+def test_rule_low_entropy_allows_test_files():
+    fs = _fs(is_low_entropy_change=True, is_test_file=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category != Category.MISTAKE
+
+
+# ---- Rule 13: comment-only change -----------------------------------------------
+
+
+def test_rule_comment_only_is_inaccuracy():
+    fs = _fs(is_comment_only_change=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.INACCURACY
+
+
+def test_rule_comment_only_allows_test_files():
+    fs = _fs(is_comment_only_change=True, is_test_file=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category != Category.INACCURACY
+
+
+# ---- Rule 14: predominantly non-functional change --------------------------------
+
+
+def test_rule_non_functional_ratio_above_80_is_inaccuracy():
+    fs = _fs(non_functional_ratio=0.85)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.INACCURACY
+
+
+def test_rule_non_functional_ratio_below_80_is_not_punished():
+    fs = _fs(non_functional_ratio=0.5)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category != Category.INACCURACY
+
+
+def test_rule_non_functional_ratio_allows_test_files():
+    fs = _fs(non_functional_ratio=0.9, is_test_file=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category != Category.INACCURACY
+
+
+# ---- Rule 15: dependency/formatting-only is Book ---------------------------------
+
+
+# ---- Rule 16: brilliant deletion ------------------------------------------------
 
 
 def test_rule_brilliant_net_deletion_with_tests():

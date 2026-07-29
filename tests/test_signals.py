@@ -246,6 +246,198 @@ def test_extract_pr_signals_detects_revert_from_commit_message():
     assert pr_signals.is_revert is True
 
 
+# ---- new Tier 2 signals ----------------------------------------------------------
+
+
+def test_debug_artifact_detected():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=('print("hello")', 'logging.debug("test")')),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.has_debug_artifact is True
+
+
+def test_debug_artifact_not_detected_on_clean_code():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("normal_code()",)),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.has_debug_artifact is False
+
+
+def test_debug_artifact_detects_pdb_and_breakpoint():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("pdb.set_trace()", "breakpoint()", "debugger")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.has_debug_artifact is True
+
+
+def test_debug_artifact_detects_console_log():
+    config = Config()
+    f = _file(
+        "src/app.js",
+        hunks=(_hunk(added=("console.log('debug')", "console.error('err')")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.has_debug_artifact is True
+
+
+def test_low_entropy_repeated_single_character():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("aaaaaa", "=====", "-------")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.is_low_entropy_change is True
+
+
+def test_low_entropy_keyboard_smash():
+    config = Config()
+    # Strings with unique/total ratio < 0.35 trigger the entropy check.
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("aabbaabb", "12121212")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.is_low_entropy_change is True
+
+
+def test_low_entropy_clean_code_not_flagged():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("def hello():", "    return greeting")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.is_low_entropy_change is False
+
+
+def test_low_entropy_blank_lines_ignored():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("   ", "", "valid_code()")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.is_low_entropy_change is False
+
+
+def test_low_entropy_short_line_skips_ratio_check():
+    config = Config()
+    f = _file("src/foo.py", hunks=(_hunk(added=("ab", "abc", "abcd")),))
+    signals = extract_file_signals(f, config)
+    # 3-4 char lines are skipped by the entropy check but don't trigger
+    assert signals.is_low_entropy_change is False
+
+
+def test_non_functional_ratio_pure_code():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("def foo():", "    return 1")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.non_functional_ratio == 0.0
+
+
+def test_non_functional_ratio_mixed():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("def foo():", "# comment", "", "    return 1")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.non_functional_ratio == 0.5
+
+
+def test_non_functional_ratio_all_comments():
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("# just a comment", "", "# another one")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.non_functional_ratio == 1.0
+
+
+def test_non_functional_ratio_no_added_lines():
+    config = Config()
+    f = _file("src/foo.py", hunks=(_hunk(removed=("old_code()",)),))
+    signals = extract_file_signals(f, config)
+    assert signals.non_functional_ratio == 0.0
+
+
+def test_placeholder_with_empty_blocked_words_no_match():
+    config = Config(blocked_placeholder_words=())
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("asdf", "placeholder")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.has_placeholder_content is False
+
+
+def test_placeholder_with_custom_blocked_words():
+    config = Config(blocked_placeholder_words=("customword",))
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("customword", "asdf")),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.has_placeholder_content is True
+
+
+def test_comment_only_change_with_non_comment_removed_line():
+    """Removed functional line makes is_comment_only_change False."""
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(_hunk(added=("# new comment",), removed=("def foo():",)),),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.is_comment_only_change is False
+
+
+def test_comment_only_change_mixed_removed_lines():
+    """First removed line is a comment, second is code — still not comment-only."""
+    config = Config()
+    f = _file(
+        "src/foo.py",
+        hunks=(
+            _hunk(
+                added=("# new comment",),
+                removed=("# old comment", "def foo():"),
+            ),
+        ),
+    )
+    signals = extract_file_signals(f, config)
+    assert signals.is_comment_only_change is False
+
+
+def test_is_dependency_lockfile_returns_false_for_empty_manifest():
+    config = Config()
+    f = _file("package.json", hunks=(_hunk(added=("", "   ")),))
+    signals = extract_file_signals(f, config)
+    assert signals.is_dependency_lockfile is False
+
+
+def test_binary_file_never_has_debug_artifact_or_low_entropy():
+    config = Config()
+    f = _file("data.bin", is_binary=True)
+    signals = extract_file_signals(f, config)
+    assert signals.has_debug_artifact is False
+    assert signals.is_low_entropy_change is False
+    assert signals.non_functional_ratio == 0.0
+
+
 # ---- file-stem matching (has_matching_test) --------------------------------------
 
 

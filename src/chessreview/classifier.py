@@ -202,7 +202,7 @@ def compute_accuracy(
         return 0.0
     floored_weights = [max(w, 1) for w in line_weights]
     total_weight = sum(floored_weights)
-    if total_weight == 0:
+    if total_weight == 0:  # pragma: no cover (max(w,1) floor guarantees >=1)
         return 0.0
     weighted_sum = sum(r.weight * w for r, w in zip(results, floored_weights))
     return round(weighted_sum / total_weight, 1)

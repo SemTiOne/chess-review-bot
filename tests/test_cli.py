@@ -93,6 +93,15 @@ def test_cli_missing_diff_file_and_not_a_repo_exits_error(
     assert "chessreview:" in err
 
 
+def test_cli_git_ref_range_runs_git_diff(capsys):
+    """Tests the git-ref-range path in _read_diff_text (lines 99-101)."""
+    exit_code = main(["HEAD~1..HEAD", "--format", "text"])
+    # Exit code varies depending on what the last commit contains.
+    assert exit_code in (EXIT_OK, EXIT_BLUNDER)
+    out = capsys.readouterr().out
+    assert "PASS" in out or "FAIL" in out
+
+
 def test_cli_version_flag(capsys):
     exit_code = main(["--version"])
     assert exit_code == EXIT_OK

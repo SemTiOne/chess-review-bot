@@ -92,6 +92,17 @@ def test_commentary_sdk_not_installed_falls_back(monkeypatch):
 # ---- budget ------------------------------------------------------------------
 
 
+def test_commentary_budget_available_allows_call(monkeypatch):
+    _install_fake_genai(monkeypatch, response_text="Looks fine.")
+    config = Config(enable_commentary=True, gemini_api_key="fake-key")
+    budget = CommentaryBudget(max_calls=5)
+    # First call should succeed (budget available).
+    text = generate_commentary(Category.GOOD, ("ok",), _fs(), config, budget=budget)
+    assert text == "Looks fine."
+    assert budget.calls_made == 1
+    assert budget.capped is False
+
+
 def test_commentary_budget_exhausted_skips_call(monkeypatch):
     mock_client_class = _install_fake_genai(
         monkeypatch, response_text="should not be used"

@@ -135,6 +135,56 @@ def test_multiple_files_in_one_diff():
     assert parsed.files[1].path == "src/new_module.py"
 
 
+def test_content_before_hunk_header_does_not_crash():
+    """Lines starting with +/- before any hunk header are silently ignored."""
+    diff = """\
+diff --git a/src/foo.py b/src/foo.py
++line before hunk header
+@@ -1,2 +1,2 @@
+ first
+-second
++second
+"""
+    parsed = parse_unified_diff(diff)
+    assert len(parsed.files) == 1
+    f = parsed.files[0]
+    # The + line before hunk header should be ignored.
+    assert f.added_count == 1
+    assert f.removed_count == 1
+
+
+def test_removed_line_before_hunk_header_also_ignored():
+    """A - line before any hunk header should not crash the parser."""
+    diff = """\
+diff --git a/src/foo.py b/src/foo.py
+-removed before header
+@@ -1,2 +1,2 @@
+ first
+-second
+"""
+    parsed = parse_unified_diff(diff)
+    assert len(parsed.files) == 1
+    f = parsed.files[0]
+    assert f.removed_count == 1
+
+
+def test_binary_file_with_trailing_lines_skips_content():
+    """Lines after a binary marker are skipped."""
+    diff = """\
+diff --git a/assets/logo.png b/assets/logo.png
+index abc123..def456 100644
+Binary files a/assets/logo.png and b/assets/logo.png differ
++this should be skipped
+@@ -1,1 +1,1 @@
++also skipped
+"""
+    parsed = parse_unified_diff(diff)
+    assert len(parsed.files) == 1
+    f = parsed.files[0]
+    assert f.is_binary is True
+    assert f.hunks == ()
+
+
 def test_empty_input_returns_no_files():
     parsed = parse_unified_diff("")
     assert parsed.files == ()

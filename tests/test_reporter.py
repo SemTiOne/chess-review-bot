@@ -66,6 +66,34 @@ def test_totals_sum_across_files():
 # ---- text rendering ---------------------------------------------------------
 
 
+def test_render_text_shows_commentary_when_present():
+    files = (
+        FileReport(
+            path="src/foo.py",
+            category=Category.GOOD,
+            reasons=("clean",),
+            commentary="A nice, safe change.",
+            lines_added=5,
+            lines_removed=0,
+        ),
+    )
+    report = _report(files=files)
+    text = render_text(report, use_color=False)
+    assert '"A nice, safe change."' in text
+
+
+def test_render_text_shows_commentary_capped_message():
+    report = _report(commentary_capped=True)
+    text = render_text(report, use_color=False)
+    assert "commentary call limit" in text
+
+
+def test_render_markdown_shows_commentary_capped_message():
+    report = _report(commentary_capped=True)
+    md = render_markdown(report)
+    assert "Commentary call limit" in md
+
+
 def test_render_text_contains_file_paths_and_categories():
     report = _report()
     text = render_text(report, use_color=False)
