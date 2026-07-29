@@ -8,6 +8,7 @@ from chessreview.gitutil import (
     GitError,
     get_commit_messages,
     get_diff,
+    get_repo_root,
     is_ancestor,
     is_git_repository,
 )
@@ -53,6 +54,23 @@ def test_is_git_repository_false(tmp_path):
     not_a_repo = tmp_path / "plain_dir"
     not_a_repo.mkdir()
     assert is_git_repository(str(not_a_repo)) is False
+
+
+# ---- get_repo_root --------------------------------------------------------------
+
+
+def test_get_repo_root_returns_absolute_path(repo):
+    result = get_repo_root(str(repo))
+    from pathlib import Path
+
+    assert Path(result).resolve() == repo.resolve()
+
+
+def test_get_repo_root_not_a_repo_raises_git_error(tmp_path):
+    not_a_repo = tmp_path / "plain_dir"
+    not_a_repo.mkdir()
+    with pytest.raises(GitError, match="not a git repository"):
+        get_repo_root(str(not_a_repo))
 
 
 # ---- get_diff ------------------------------------------------------------------
