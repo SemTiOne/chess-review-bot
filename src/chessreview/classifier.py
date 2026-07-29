@@ -133,25 +133,46 @@ def classify_file(
             "adds placeholder or meaningless content",
         )
 
-    # 11. Comment-only change with no functional code impact.
+    # 11. Debug artifacts (print, pdb, console.log, etc.) left in code.
+    if fs.has_debug_artifact:
+        return result(
+            Category.MISTAKE,
+            "contains debug artifact (print, pdb, console.log, etc.)",
+        )
+
+    # 12. Low-entropy / keyboard-smash / repeated-char content.
+    if fs.is_low_entropy_change and not fs.is_test_file:
+        return result(
+            Category.MISTAKE,
+            "change appears to be keyboard smash or low-entropy content",
+        )
+
+    # 13. Comment-only change with no functional code impact.
     if fs.is_comment_only_change and not fs.is_test_file:
         return result(
             Category.INACCURACY,
             "comment-only change with no functional impact",
         )
 
-    # 12. Routine: dependency bump or pure reformatting.
+    # 14. Predominantly non-functional (comments/whitespace > 80% but not 100%).
+    if fs.non_functional_ratio > 0.8 and not fs.is_test_file:
+        return result(
+            Category.INACCURACY,
+            f"{fs.non_functional_ratio:.0%} of the change is comments or whitespace",
+        )
+
+    # 15. Routine: dependency bump or pure reformatting.
     if fs.is_dependency_lockfile or fs.is_formatting_only:
         return result(Category.BOOK, "routine dependency or formatting-only change")
 
-    # 13. Net code reduction, tests maintained, not critical.
+    # 16. Net code reduction, tests maintained, not critical.
     if fs.net_lines <= -50 and pr.test_files_changed > 0 and not fs.is_critical:
         return result(
             Category.BRILLIANT,
             "net code reduction with maintained test coverage",
         )
 
-    # 14. This specific file has a plausibly-corresponding test file also
+    # 17. This specific file has a plausibly-corresponding test file also
     #     changed in the PR (not just "some test changed somewhere").
     if (
         fs.has_matching_test
@@ -160,15 +181,15 @@ def classify_file(
     ):
         return result(Category.GREAT, "has a matching test file changed alongside it")
 
-    # 15. Small, single-file, single-purpose change.
+    # 18. Small, single-file, single-purpose change.
     if pr.total_files == 1 and total_lines <= config.moderate_threshold:
         return result(Category.BEST, "small, focused, single-file change")
 
-    # 16. Moderate size, nothing flagged.
+    # 19. Moderate size, nothing flagged.
     if total_lines <= config.large_threshold:
         return result(Category.EXCELLENT, "moderate change, no risk signals")
 
-    # 17. Default.
+    # 20. Default.
     return result(Category.GOOD, "no notable risk or quality signals")
 
 

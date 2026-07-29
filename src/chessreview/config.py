@@ -59,6 +59,19 @@ HOSTILE_MESSAGE_MARKERS: tuple[str, ...] = (
     "omg why",
 )
 
+DEFAULT_BLOCKED_PLACEHOLDER_WORDS: tuple[str, ...] = (
+    "asdf",
+    "qwerty",
+    "placeholder",
+    "peak",
+    "lorem",
+    "ipsum",
+    "delete_me",
+    "remove_this",
+    "testtest",
+    "foobar",
+)
+
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
 
@@ -82,6 +95,10 @@ class Config:
     use_color: bool = True
     summary_only: bool = False
     debug: bool = False
+
+    blocked_placeholder_words: tuple[str, ...] = field(
+        default_factory=lambda: DEFAULT_BLOCKED_PLACEHOLDER_WORDS
+    )
 
     # For local CLI testing. Action mode derives these itself instead.
     force_pushed_override: bool = False

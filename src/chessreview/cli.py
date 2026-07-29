@@ -13,7 +13,12 @@ import sys
 from chessreview import __version__
 from chessreview.classifier import classify_file, compute_accuracy
 from chessreview.commentary import CommentaryBudget, generate_commentary
-from chessreview.config import DEFAULT_CRITICAL_PATTERNS, DEFAULT_GEMINI_MODEL, Config
+from chessreview.config import (
+    DEFAULT_BLOCKED_PLACEHOLDER_WORDS,
+    DEFAULT_CRITICAL_PATTERNS,
+    DEFAULT_GEMINI_MODEL,
+    Config,
+)
 from chessreview.diff_parser import parse_unified_diff
 from chessreview.gitutil import (
     GitError,
@@ -60,6 +65,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-color", action="store_true")
     parser.add_argument("--summary", action="store_true")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument(
+        "--blocked-words",
+        default="",
+        help="Comma-separated list of placeholder words to flag",
+    )
     parser.add_argument("--version", action="store_true")
     return parser
 
@@ -100,6 +110,12 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_OK
 
     try:
+        blocked_words_raw = args.blocked_words
+        blocked_placeholder_words = (
+            tuple(w.strip() for w in blocked_words_raw.split(",") if w.strip())
+            if blocked_words_raw
+            else DEFAULT_BLOCKED_PLACEHOLDER_WORDS
+        )
         config = Config(
             critical_patterns=tuple(args.only_critical)
             if args.only_critical
@@ -116,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
             debug=args.debug,
             force_pushed_override=args.force_pushed,
             revert_override=args.revert,
+            blocked_placeholder_words=blocked_placeholder_words,
         )
     except ValueError as exc:
         print(f"chessreview: invalid configuration: {exc}", file=sys.stderr)

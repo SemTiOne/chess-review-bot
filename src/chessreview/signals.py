@@ -22,11 +22,13 @@ from chessreview.syntax_check import file_fails_to_parse
 _TODO_FIXME_RE = re.compile(r"\b(TODO|FIXME|XXX|HACK)\b")
 _VERSION_LINE_RE = re.compile(r'^\s*"?[\w.@/-]+"?\s*[:=]\s*"?[\^~]?\d+\.\d+')
 _TEST_DISABLE_RE = re.compile(r"(\.skip\(|@skip\b|xfail\b|it\.skip\(|describe\.skip\()")
-_PLACEHOLDER_RE = re.compile(
-    r"^\s*(#\s*)?\b(?:asdf|qwerty|placeholder|peak|lorem|ipsum|delete_me|remove_this|testtest|foobar)\b\s*$",
+_COMMENT_OR_BLANK_LINE_RE = re.compile(r"^\s*(#.*)?$")
+_DEBUG_ARTIFACT_RE = re.compile(
+    r"(?:\b(?:print|console\.log|console\.error|console\.warn|console\.debug)\s*\()|"
+    r"(?:\b(?:pdb\.set_trace|breakpoint|debugger)\b)|"
+    r"(?:\blogging\.(?:debug|info)\s*\()",
     re.IGNORECASE,
 )
-_COMMENT_OR_BLANK_LINE_RE = re.compile(r"^\s*(#.*)?$")
 # Note: `@pytest.mark.skip(...)` and `it.skip(`/`describe.skip(` all already
 # contain the literal `.skip(` substring, so the first alternative alone
 # covers them; `it\.skip\(`/`describe\.skip\(` are kept only as
@@ -75,6 +77,9 @@ class FileSignals:
     fails_to_parse: bool = False
     has_placeholder_content: bool = False
     is_comment_only_change: bool = False
+    has_debug_artifact: bool = False
+    is_low_entropy_change: bool = False
+    non_functional_ratio: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -152,10 +157,50 @@ def _disables_tests(file: DiffFile) -> bool:
     return False
 
 
-def _has_placeholder_content(file: DiffFile) -> bool:
-    return any(
-        _PLACEHOLDER_RE.match(line) for hunk in file.hunks for line in hunk.added_lines
+def _has_placeholder_content(file: DiffFile, blocked_words: tuple[str, ...]) -> bool:
+    if not blocked_words:
+        return False
+    pattern = (
+        r"^\s*(#\s*)?\b(?:" + "|".join(re.escape(w) for w in blocked_words) + r")\b\s*$"
     )
+    regex = re.compile(pattern, re.IGNORECASE)
+    return any(regex.match(line) for hunk in file.hunks for line in hunk.added_lines)
+
+
+def _has_debug_artifact(file: DiffFile) -> bool:
+    return any(
+        _DEBUG_ARTIFACT_RE.search(line)
+        for hunk in file.hunks
+        for line in hunk.added_lines
+    )
+
+
+def _is_low_entropy_content(file: DiffFile) -> bool:
+    for hunk in file.hunks:
+        for line in hunk.added_lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if len(set(stripped)) == 1:
+                return True
+            if len(stripped) >= 5:
+                unique_ratio = len(set(stripped)) / len(stripped)
+                if unique_ratio < 0.35:
+                    return True
+    return False
+
+
+def _compute_non_functional_ratio(file: DiffFile) -> float:
+    total = 0
+    non_functional = 0
+    for hunk in file.hunks:
+        for line in hunk.added_lines:
+            total += 1
+            if _COMMENT_OR_BLANK_LINE_RE.match(line):
+                non_functional += 1
+    if total == 0:
+        return 0.0
+    return non_functional / total
 
 
 def _is_comment_only_change(file: DiffFile) -> bool:
@@ -211,12 +256,19 @@ def extract_file_signals(
         else False,
         is_formatting_only=_is_formatting_only(file) if not is_binary else False,
         fails_to_parse=bool(file_fails_to_parse(file, repo_root)),
-        has_placeholder_content=_has_placeholder_content(file)
+        has_placeholder_content=_has_placeholder_content(
+            file, config.blocked_placeholder_words
+        )
         if not is_binary
         else False,
         is_comment_only_change=_is_comment_only_change(file)
         if not is_binary
         else False,
+        has_debug_artifact=_has_debug_artifact(file) if not is_binary else False,
+        is_low_entropy_change=_is_low_entropy_content(file) if not is_binary else False,
+        non_functional_ratio=_compute_non_functional_ratio(file)
+        if not is_binary
+        else 0.0,
     )
 
 

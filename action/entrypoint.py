@@ -22,7 +22,11 @@ from comment import GitHubApiError, upsert_comment  # noqa: E402
 
 from chessreview.classifier import classify_file, compute_accuracy  # noqa: E402
 from chessreview.commentary import CommentaryBudget, generate_commentary  # noqa: E402
-from chessreview.config import DEFAULT_CRITICAL_PATTERNS, Config  # noqa: E402
+from chessreview.config import (  # noqa: E402
+    DEFAULT_BLOCKED_PLACEHOLDER_WORDS,
+    DEFAULT_CRITICAL_PATTERNS,
+    Config,
+)
 from chessreview.diff_parser import parse_unified_diff  # noqa: E402
 from chessreview.gitutil import (  # noqa: E402
     GitError,
@@ -94,6 +98,12 @@ def main() -> int:
     moderate_threshold = _env_int("CHESSREVIEW_MODERATE_THRESHOLD", 100)
     fail_on_blunder = _env_bool("CHESSREVIEW_FAIL_ON_BLUNDER", True)
     post_comment = _env_bool("CHESSREVIEW_POST_COMMENT", True)
+    blocked_words_raw = os.environ.get("CHESSREVIEW_BLOCKED_WORDS", "")
+    blocked_words = (
+        tuple(w.strip() for w in blocked_words_raw.split(",") if w.strip())
+        if blocked_words_raw
+        else ()
+    )
 
     if not token:
         print("chess-review-bot: GITHUB_TOKEN is required", file=sys.stderr)
@@ -109,12 +119,17 @@ def main() -> int:
         critical_patterns = DEFAULT_CRITICAL_PATTERNS
 
     try:
+        if blocked_words:
+            blocked_placeholder_words = blocked_words
+        else:
+            blocked_placeholder_words = DEFAULT_BLOCKED_PLACEHOLDER_WORDS
         config = Config(
             critical_patterns=critical_patterns,
             large_threshold=large_threshold,
             moderate_threshold=moderate_threshold,
             enable_commentary=bool(gemini_key),
             gemini_api_key=gemini_key,
+            blocked_placeholder_words=blocked_placeholder_words,
         )
     except ValueError as exc:
         print(f"chess-review-bot: invalid configuration: {exc}", file=sys.stderr)

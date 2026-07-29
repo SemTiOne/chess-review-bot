@@ -44,6 +44,12 @@ inputs:
     description: 'Post/update a PR comment with the review card.'
     required: false
     default: 'true'
+  blocked-words:
+    description: >
+      Comma-separated list of words to treat as placeholder/throwaway content.
+      Replaces the built-in defaults entirely.
+    required: false
+    default: ''
 
 outputs:
   accuracy:
@@ -80,3 +86,4 @@ runs:
         CHESSREVIEW_MODERATE_THRESHOLD: ${{ inputs.moderate-threshold }}
         CHESSREVIEW_FAIL_ON_BLUNDER: ${{ inputs.fail-on-blunder }}
         CHESSREVIEW_POST_COMMENT: ${{ inputs.post-comment }}
+        CHESSREVIEW_BLOCKED_WORDS: ${{ inputs.blocked-words }}
