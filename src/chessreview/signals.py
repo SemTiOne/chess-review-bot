@@ -17,6 +17,7 @@ from chessreview.config import (
 )
 from chessreview.diff_parser import DiffFile, ParsedDiff, is_test_file
 from chessreview.redaction import contains_credential
+from chessreview.syntax_check import file_fails_to_parse
 
 _TODO_FIXME_RE = re.compile(r"\b(TODO|FIXME|XXX|HACK)\b")
 _VERSION_LINE_RE = re.compile(r'^\s*"?[\w.@/-]+"?\s*[:=]\s*"?[\^~]?\d+\.\d+')
@@ -66,6 +67,7 @@ class FileSignals:
     is_dependency_lockfile: bool
     is_formatting_only: bool
     has_matching_test: bool = False
+    fails_to_parse: bool = False
 
 
 @dataclass(frozen=True)
@@ -162,7 +164,9 @@ def _is_revert_message(messages: tuple[str, ...]) -> bool:
     return any(_REVERT_COMMIT_RE.match(m) for m in messages)
 
 
-def extract_file_signals(file: DiffFile, config: Config) -> FileSignals:
+def extract_file_signals(
+    file: DiffFile, config: Config, repo_root: str | None = None
+) -> FileSignals:
     """Deterministic signals for one file in the diff."""
     net_lines = file.added_count - file.removed_count
     return FileSignals(
@@ -180,14 +184,18 @@ def extract_file_signals(file: DiffFile, config: Config) -> FileSignals:
         if not file.is_binary
         else False,
         is_formatting_only=_is_formatting_only(file) if not file.is_binary else False,
+        fails_to_parse=bool(file_fails_to_parse(file, repo_root)),
     )
 
 
 def extract_pr_signals(
-    diff: ParsedDiff, git_ctx: GitContext, config: Config
+    diff: ParsedDiff,
+    git_ctx: GitContext,
+    config: Config,
+    repo_root: str | None = None,
 ) -> PRSignals:
     """Per-file signals + PR-level aggregates, one pass."""
-    file_signals = tuple(extract_file_signals(f, config) for f in diff.files)
+    file_signals = tuple(extract_file_signals(f, config, repo_root) for f in diff.files)
 
     test_files_changed = sum(1 for fs in file_signals if fs.is_test_file)
     non_test_files_changed = len(file_signals) - test_files_changed

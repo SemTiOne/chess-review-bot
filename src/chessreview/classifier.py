@@ -61,6 +61,17 @@ def classify_file(
     fs, pr = file_signals, pr_signals
     total_lines = fs.lines_added + fs.lines_removed
 
+    # 0. Doesn't even parse -- can't run at all, regardless of anything
+    # else about the diff's shape or size. Must outrank every other rule,
+    # including credential detection: an unparseable file is a more
+    # fundamental failure than any signal computed from a diff that still
+    # assumes the file is valid source.
+    if fs.fails_to_parse:
+        return result(
+            Category.BLUNDER,
+            "file does not parse -- introduces a syntax error",
+        )
+
     # 1. Credential leak -- always worst outcome, no exceptions.
     if fs.secrets_detected > 0:
         return result(

@@ -63,6 +63,13 @@ def is_git_repository(path: str | None = None) -> bool:
     return result.returncode == 0
 
 
+def get_repo_root(cwd: str | None = None) -> str:
+    result = _run_git(["rev-parse", "--show-toplevel"], cwd=cwd)
+    if result.returncode != 0:
+        raise GitError("not a git repository")
+    return result.stdout.strip()
+
+
 def get_diff(ref_range: str, cwd: str | None = None) -> str:
     """Unified diff text for `ref_range`. Raises GitError on failure;
     empty string for a valid no-op range is not an error."""

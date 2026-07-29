@@ -19,6 +19,7 @@ from chessreview.gitutil import (
     GitError,
     get_commit_messages,
     get_diff,
+    get_repo_root,
     is_git_repository,
 )
 from chessreview.reporter import FileReport, RunReport, render
@@ -63,13 +64,23 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _read_diff_text(diff_source: str) -> tuple[str, tuple[str, ...]]:
-    """Return (diff_text, commit_messages). Raises GitError/OSError on failure."""
+def _read_diff_text(diff_source: str) -> tuple[str, tuple[str, ...], str | None]:
+    """Return (diff_text, commit_messages, repo_root).
+
+    ``repo_root`` is the checkout to read post-change file content from
+    for the syntax-validity check, only set when ``diff_source`` is a
+    real git ref-range against the current working directory (there's no
+    guaranteed corresponding checkout for a standalone diff file or
+    stdin, so those modes get ``None`` and the check is skipped for
+    them, never guessed).
+
+    Raises GitError/OSError on failure.
+    """
     if diff_source == "-":
-        return sys.stdin.read(), ()
+        return sys.stdin.read(), (), None
     if os.path.isfile(diff_source):
         with open(diff_source, "r", encoding="utf-8", errors="replace") as fh:
-            return fh.read(), ()
+            return fh.read(), (), None
     # Otherwise treat it as a git ref range.
     if not is_git_repository():
         raise GitError(
@@ -77,7 +88,7 @@ def _read_diff_text(diff_source: str) -> tuple[str, tuple[str, ...]]:
         )
     diff_text = get_diff(diff_source)
     messages = get_commit_messages(diff_source)
-    return diff_text, messages
+    return diff_text, messages, get_repo_root()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -111,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_ERROR
 
     try:
-        diff_text, commit_messages = _read_diff_text(args.diff_source)
+        diff_text, commit_messages, repo_root = _read_diff_text(args.diff_source)
     except (GitError, OSError) as exc:
         print(f"chessreview: {exc}", file=sys.stderr)
         return EXIT_ERROR
@@ -122,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
         force_pushed=config.force_pushed_override,
         is_revert=config.revert_override,
     )
-    pr_signals = extract_pr_signals(parsed, git_ctx, config)
+    pr_signals = extract_pr_signals(parsed, git_ctx, config, repo_root)
 
     budget = CommentaryBudget(config.max_commentary_calls_per_run)
     file_reports: list[FileReport] = []

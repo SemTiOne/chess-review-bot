@@ -28,6 +28,7 @@ from chessreview.gitutil import (  # noqa: E402
     GitError,
     get_commit_messages,
     get_diff,
+    get_repo_root,
     is_ancestor,
 )
 from chessreview.reporter import (  # noqa: E402
@@ -160,7 +161,7 @@ def main() -> int:
     git_ctx = GitContext(
         commit_messages=commit_messages, force_pushed=forced, is_revert=False
     )
-    pr_signals = extract_pr_signals(parsed, git_ctx, config)
+    pr_signals = extract_pr_signals(parsed, git_ctx, config, get_repo_root())
 
     budget = CommentaryBudget(config.max_commentary_calls_per_run)
     file_reports = []

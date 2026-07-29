@@ -58,6 +58,39 @@ def test_rule_secrets_is_blunder():
     assert "credential" in result.reasons[0]
 
 
+# ---- Rule 0: fails to parse ---------------------------------------------------
+
+
+def test_rule_fails_to_parse_is_blunder():
+    fs = _fs(fails_to_parse=True)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.BLUNDER
+    assert "parse" in result.reasons[0]
+
+
+def test_rule_fails_to_parse_outranks_secrets():
+    fs = _fs(fails_to_parse=True, secrets_detected=1)
+    pr = _pr()
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.BLUNDER
+    assert "parse" in result.reasons[0]
+
+
+def test_rule_fails_to_parse_outranks_tiny_diff_shape():
+    fs = _fs(lines_added=1, lines_removed=1, net_lines=0, fails_to_parse=True)
+    pr = _pr(total_files=1)
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category == Category.BLUNDER
+
+
+def test_rule_parses_fine_is_not_penalized():
+    fs = _fs(lines_added=1, lines_removed=1, net_lines=0)
+    pr = _pr(total_files=1)
+    result = classify_file(fs, pr, CONFIG)
+    assert result.category != Category.BLUNDER
+
+
 # ---- Rule 2: force-push ------------------------------------------------------
 
 
