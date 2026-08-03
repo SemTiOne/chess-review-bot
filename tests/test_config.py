@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from chessreview.config import Config, DEFAULT_BLOCKED_PLACEHOLDER_WORDS
+from chessreview.config import DEFAULT_BLOCKED_PLACEHOLDER_WORDS, Config
 
 
 def test_default_blocked_words_are_set():
