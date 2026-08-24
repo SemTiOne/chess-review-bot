@@ -18,31 +18,31 @@ import sys
 # tree without pip-installing first.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from comment import GitHubApiError, upsert_comment  # noqa: E402
+from comment import GitHubApiError, upsert_comment
 
-from chessreview.classifier import classify_file, compute_accuracy  # noqa: E402
-from chessreview.commentary import CommentaryBudget, generate_commentary  # noqa: E402
-from chessreview.config import (  # noqa: E402
+from chessreview.classifier import classify_file, compute_accuracy
+from chessreview.commentary import CommentaryBudget, generate_commentary
+from chessreview.config import (
     DEFAULT_BLOCKED_PLACEHOLDER_WORDS,
     DEFAULT_CRITICAL_PATTERNS,
     Config,
 )
-from chessreview.diff_parser import parse_unified_diff  # noqa: E402
-from chessreview.gitutil import (  # noqa: E402
+from chessreview.diff_parser import parse_unified_diff
+from chessreview.gitutil import (
     GitError,
     get_commit_messages,
     get_diff,
     get_repo_root,
     is_ancestor,
 )
-from chessreview.reporter import (  # noqa: E402
+from chessreview.reporter import (
     IDEMPOTENCY_MARKER,
     FileReport,
     RunReport,
     render_json,
     render_markdown,
 )
-from chessreview.signals import GitContext, extract_pr_signals  # noqa: E402
+from chessreview.signals import GitContext, extract_pr_signals
 
 EXIT_OK = 0
 EXIT_BLUNDER = 1
