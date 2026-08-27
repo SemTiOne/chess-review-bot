@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 
-
 from chessreview.cli import EXIT_BLUNDER, EXIT_ERROR, EXIT_OK, main
 
 GOOD_DIFF = """\
