@@ -97,6 +97,7 @@ def main() -> int:
     large_threshold = _env_int("CHESSREVIEW_LARGE_THRESHOLD", 400)
     moderate_threshold = _env_int("CHESSREVIEW_MODERATE_THRESHOLD", 100)
     fail_on_blunder = _env_bool("CHESSREVIEW_FAIL_ON_BLUNDER", True)
+    revert_override = _env_bool("CHESSREVIEW_REVERT", False)
     post_comment = _env_bool("CHESSREVIEW_POST_COMMENT", True)
     blocked_words_raw = os.environ.get("CHESSREVIEW_BLOCKED_WORDS", "")
     blocked_words = (
@@ -174,7 +175,9 @@ def main() -> int:
 
     parsed = parse_unified_diff(diff_text)
     git_ctx = GitContext(
-        commit_messages=commit_messages, force_pushed=forced, is_revert=False
+        commit_messages=commit_messages,
+        force_pushed=forced,
+        is_revert=revert_override,
     )
     pr_signals = extract_pr_signals(parsed, git_ctx, config, get_repo_root())
 

@@ -108,6 +108,26 @@ def test_cli_version_flag(capsys):
     assert "chessreview" in out
 
 
+def test_version_matches_installed_distribution():
+    from importlib.metadata import version
+
+    import chessreview
+
+    assert chessreview.__version__ == version("chess-review-bot")
+
+
+def test_version_falls_back_when_not_installed(monkeypatch):
+    from importlib.metadata import PackageNotFoundError
+
+    import chessreview
+
+    def _missing(_name: str) -> str:
+        raise PackageNotFoundError
+
+    monkeypatch.setattr(chessreview, "version", _missing)
+    assert chessreview._installed_version() == "0.0.0+local"
+
+
 def test_cli_gemini_key_never_appears_in_output(tmp_path, capsys):
     diff_file = _write_diff(tmp_path, GOOD_DIFF)
     secret_key = "sk-super-secret-gemini-key-98765"
