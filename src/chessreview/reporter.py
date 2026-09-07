@@ -137,7 +137,7 @@ def render_markdown(report: RunReport) -> str:
         "|---|---|---|",
     ]
     for f in report.files:
-        why = f.reasons[0] if f.reasons else f.commentary or "\u2014"
+        why = "; ".join(f.reasons) if f.reasons else f.commentary or "—"
         lines.append(f"| `{f.path}` | {f.category.value} | {why} |")
 
     lines.append("")

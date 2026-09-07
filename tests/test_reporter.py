@@ -151,6 +151,21 @@ def test_render_markdown_contains_table_rows():
     assert "| `src/utils/formatting.py` | Book |" in md
 
 
+def test_render_markdown_why_joins_all_reasons():
+    files = (
+        FileReport(
+            path="src/foo.py",
+            category=Category.MISTAKE,
+            reasons=("first reason", "second reason"),
+            commentary="",
+            lines_added=5,
+            lines_removed=2,
+        ),
+    )
+    md = render_markdown(_report(files=files))
+    assert "first reason; second reason" in md
+
+
 # ---- render() dispatcher -----------------------------------------------------
 
 
