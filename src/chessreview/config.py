@@ -114,3 +114,5 @@ class Config:
             )
         if self.max_commentary_calls_per_run < 0:
             raise ValueError("max_commentary_calls_per_run must be non-negative")
+        if self.commentary_timeout_seconds <= 0:
+            raise ValueError("commentary_timeout_seconds must be positive")
