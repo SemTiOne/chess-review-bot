@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 
-
 from chessreview.cli import EXIT_BLUNDER, EXIT_ERROR, EXIT_OK, main
 
 GOOD_DIFF = """\
@@ -110,15 +109,17 @@ def test_cli_version_flag(capsys):
 
 
 def test_version_matches_installed_distribution():
-    import chessreview
     from importlib.metadata import version
+
+    import chessreview
 
     assert chessreview.__version__ == version("chess-review-bot")
 
 
 def test_version_falls_back_when_not_installed(monkeypatch):
-    import chessreview
     from importlib.metadata import PackageNotFoundError
+
+    import chessreview
 
     def _missing(_name: str) -> str:
         raise PackageNotFoundError
