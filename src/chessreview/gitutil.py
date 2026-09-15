@@ -38,6 +38,7 @@ def _run_git(args: list[str], cwd: str | None = None) -> GitCallResult:
             ["git", *args],
             cwd=cwd,
             shell=False,
+            check=False,
             capture_output=True,
             text=True,
             encoding="utf-8",

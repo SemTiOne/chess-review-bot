@@ -36,7 +36,7 @@ def _report(**overrides) -> RunReport:
             ),
         ),
     )
-    defaults = dict(files=files, accuracy=42.0, diff_range="HEAD~1..HEAD")
+    defaults = {"files": files, "accuracy": 42.0, "diff_range": "HEAD~1..HEAD"}
     defaults.update(overrides)
     return RunReport(**defaults)
 

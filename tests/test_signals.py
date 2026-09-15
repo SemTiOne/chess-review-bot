@@ -14,17 +14,17 @@ from chessreview.signals import (
 def _file(path: str, hunks: tuple[DiffHunk, ...] = (), **overrides) -> DiffFile:
     added = sum(len(h.added_lines) for h in hunks)
     removed = sum(len(h.removed_lines) for h in hunks)
-    defaults = dict(
-        path=path,
-        old_path=None,
-        is_new=False,
-        is_deleted=False,
-        is_renamed=False,
-        is_binary=False,
-        hunks=hunks,
-        added_count=added,
-        removed_count=removed,
-    )
+    defaults = {
+        "path": path,
+        "old_path": None,
+        "is_new": False,
+        "is_deleted": False,
+        "is_renamed": False,
+        "is_binary": False,
+        "hunks": hunks,
+        "added_count": added,
+        "removed_count": removed,
+    }
     defaults.update(overrides)
     return DiffFile(**defaults)
 

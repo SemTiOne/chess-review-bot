@@ -12,19 +12,19 @@ from chessreview.signals import FileSignals
 
 
 def _fs(**overrides) -> FileSignals:
-    defaults = dict(
-        path="src/foo.py",
-        lines_added=5,
-        lines_removed=2,
-        net_lines=3,
-        is_test_file=False,
-        is_critical=False,
-        secrets_detected=0,
-        disables_tests=False,
-        todo_fixme_added=0,
-        is_dependency_lockfile=False,
-        is_formatting_only=False,
-    )
+    defaults = {
+        "path": "src/foo.py",
+        "lines_added": 5,
+        "lines_removed": 2,
+        "net_lines": 3,
+        "is_test_file": False,
+        "is_critical": False,
+        "secrets_detected": 0,
+        "disables_tests": False,
+        "todo_fixme_added": 0,
+        "is_dependency_lockfile": False,
+        "is_formatting_only": False,
+    }
     defaults.update(overrides)
     return FileSignals(**defaults)
 

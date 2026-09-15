@@ -2,3 +2,10 @@ rules:
   dependabot-cooldown:
     ignore:
       - dependabot.yml
+  self-repository:
+    ignore:
+      # pr-review.yml dogfoods the checkout-relative composite action
+      # (./action) so PRs test unreleased code. $/action is the more precise
+      # fix but the pinned actionlint (v1.7.12) rejects that syntax; adopt it
+      # when the toolchain supports it.
+      - pr-review.yml:35:15
