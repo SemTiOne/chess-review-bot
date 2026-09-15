@@ -52,11 +52,25 @@ def _install_fake_genai(
     fake_genai_module = types.ModuleType("google.genai")
     fake_genai_module.Client = mock_client_class
 
+    class _FakeHttpOptions:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    class _FakeGenerateContentConfig:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    fake_types_module = types.ModuleType("google.genai.types")
+    fake_types_module.HttpOptions = _FakeHttpOptions
+    fake_types_module.GenerateContentConfig = _FakeGenerateContentConfig
+    fake_genai_module.types = fake_types_module
+
     fake_google_module = types.ModuleType("google")
     fake_google_module.genai = fake_genai_module
 
     monkeypatch.setitem(sys.modules, "google", fake_google_module)
     monkeypatch.setitem(sys.modules, "google.genai", fake_genai_module)
+    monkeypatch.setitem(sys.modules, "google.genai.types", fake_types_module)
     return mock_client_class
 
 
@@ -141,6 +155,20 @@ def test_commentary_client_called_with_configured_model(monkeypatch):
     instance = mock_client_class.return_value
     _, kwargs = instance.models.generate_content.call_args
     assert kwargs["model"] == "gemini-3.5-flash"
+
+
+def test_commentary_passes_configured_timeout_ms(monkeypatch):
+    mock_client_class = _install_fake_genai(monkeypatch, response_text="Fine.")
+    config = Config(
+        enable_commentary=True,
+        gemini_api_key="fake-key",
+        commentary_timeout_seconds=7,
+    )
+    text = generate_commentary(Category.GOOD, (), _fs(), config)
+    assert text == "Fine."
+    instance = mock_client_class.return_value
+    _, kwargs = instance.models.generate_content.call_args
+    assert kwargs["config"].kwargs["http_options"].kwargs["timeout"] == 7000
 
 
 # ---- failure paths always fall back, never raise -------------------------------

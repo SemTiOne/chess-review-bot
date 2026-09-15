@@ -75,6 +75,7 @@ def generate_commentary(
 
     try:
         from google import genai  # imported lazily: optional dependency
+        from google.genai import types
     except ImportError:
         return _fallback_commentary(category, reasons)
 
@@ -85,6 +86,11 @@ def generate_commentary(
         response = client.models.generate_content(
             model=config.gemini_model,
             contents=prompt,
+            config=types.GenerateContentConfig(
+                http_options=types.HttpOptions(
+                    timeout=config.commentary_timeout_seconds * 1000
+                ),
+            ),
         )
         text = sanitize_text(getattr(response, "text", "") or "")
     except Exception:  # noqa: BLE001 - any SDK/network/timeout failure falls back safely

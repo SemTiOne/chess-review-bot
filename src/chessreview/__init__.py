@@ -6,4 +6,14 @@ the LLM. commentary.py only phrases an already-decided category.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version
+
+
+def _installed_version() -> str:
+    try:
+        return version("chess-review-bot")
+    except PackageNotFoundError:
+        return "0.0.0+local"
+
+
+__version__ = _installed_version()

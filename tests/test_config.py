@@ -39,3 +39,8 @@ def test_config_negative_max_commentary_calls_raises():
         ValueError, match="max_commentary_calls_per_run must be non-negative"
     ):
         Config(max_commentary_calls_per_run=-1)
+
+
+def test_config_nonpositive_commentary_timeout_raises():
+    with pytest.raises(ValueError, match="commentary_timeout_seconds must be positive"):
+        Config(commentary_timeout_seconds=0)
