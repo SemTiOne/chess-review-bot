@@ -2,3 +2,8 @@ rules:
   dependabot-cooldown:
     ignore:
       - dependabot.yml
+  self-repository:
+    ignore:
+      # pr-review.yml intentionally uses the LOCAL composite action (./action)
+      # to dogfood unreleased code; a pinned remote ref would test the release.
+      - pr-review.yml

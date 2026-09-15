@@ -130,8 +130,7 @@ def render_markdown(report: RunReport) -> str:
     lines = [
         "### \u265f\ufe0f chess-review-bot \u2014 PR Game Review",
         "",
-        f"**Accuracy: {report.accuracy}/100** \u00b7 {len(report.files)} files \u00b7 "
-        f"+{report.total_added}/-{report.total_removed} \u00b7 {report.blunder_count} Blunder??",
+        f"**Accuracy: {report.accuracy}/100** \u00b7 {len(report.files)} files \u00b7 +{report.total_added}/-{report.total_removed} \u00b7 {report.blunder_count} Blunder??",
         "",
         "| File | Category | Why |",
         "|---|---|---|",

@@ -11,35 +11,35 @@ from chessreview.signals import FileSignals, PRSignals
 
 
 def _fs(**overrides) -> FileSignals:
-    defaults = dict(
-        path="src/foo.py",
-        lines_added=5,
-        lines_removed=2,
-        net_lines=3,
-        is_test_file=False,
-        is_critical=False,
-        secrets_detected=0,
-        disables_tests=False,
-        todo_fixme_added=0,
-        is_dependency_lockfile=False,
-        is_formatting_only=False,
-    )
+    defaults = {
+        "path": "src/foo.py",
+        "lines_added": 5,
+        "lines_removed": 2,
+        "net_lines": 3,
+        "is_test_file": False,
+        "is_critical": False,
+        "secrets_detected": 0,
+        "disables_tests": False,
+        "todo_fixme_added": 0,
+        "is_dependency_lockfile": False,
+        "is_formatting_only": False,
+    }
     defaults.update(overrides)
     return FileSignals(**defaults)
 
 
 def _pr(files=(), **overrides) -> PRSignals:
-    defaults = dict(
-        files=files,
-        total_files=max(len(files), 1),
-        total_added=0,
-        total_removed=0,
-        test_files_changed=1,
-        non_test_files_changed=0,
-        commit_message_quality="good",
-        force_pushed=False,
-        is_revert=False,
-    )
+    defaults = {
+        "files": files,
+        "total_files": max(len(files), 1),
+        "total_added": 0,
+        "total_removed": 0,
+        "test_files_changed": 1,
+        "non_test_files_changed": 0,
+        "commit_message_quality": "good",
+        "force_pushed": False,
+        "is_revert": False,
+    }
     defaults.update(overrides)
     return PRSignals(**defaults)
 

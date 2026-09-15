@@ -156,7 +156,7 @@ def parse_unified_diff(diff_text: str) -> ParsedDiff:
         if line.startswith("Binary files ") and line.endswith(" differ"):
             builder.is_binary = True
             continue
-        if line.startswith("--- ") or line.startswith("+++ "):
+        if line.startswith(("--- ", "+++ ")):
             continue
         if _HUNK_HEADER_RE.match(line):
             builder.start_hunk(line)
